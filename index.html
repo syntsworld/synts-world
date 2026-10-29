@@ -204,6 +204,55 @@
             </div>
         </div>
     </section>
+    // Explicitly attach functions to the global window object
+window.currentAuthMode = 'signin';
+
+window.openAuthModal = function(mode = 'signin') {
+    window.currentAuthMode = mode;
+    updateAuthModalUI();
+    const modal = document.getElementById('auth-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+    } else {
+        console.error("Error: #auth-modal element not found in HTML!");
+    }
+};
+
+window.closeAuthModal = function() {
+    const modal = document.getElementById('auth-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+};
+
+window.toggleAuthMode = function() {
+    window.currentAuthMode = window.currentAuthMode === 'signin' ? 'signup' : 'signin';
+    updateAuthModalUI();
+};
+
+function updateAuthModalUI() {
+    const isSignUp = window.currentAuthMode === 'signup';
+    const titleEl = document.getElementById('modal-title');
+    const subtitleEl = document.getElementById('modal-subtitle');
+    const submitBtn = document.getElementById('modal-submit-btn');
+    const toggleText = document.getElementById('toggle-text');
+    const toggleBtn = document.getElementById('toggle-btn');
+    const fieldUsername = document.getElementById('field-username');
+
+    if (titleEl) titleEl.innerText = isSignUp ? 'CREATE ACCOUNT' : 'SIGN IN';
+    if (subtitleEl) subtitleEl.innerText = isSignUp ? 'JOIN SYNTS WORLD VIP COMMUNITY' : 'ACCESS YOUR SYNTS WORLD ACCOUNT';
+    if (submitBtn) submitBtn.innerText = isSignUp ? 'CREATE ACCOUNT' : 'LOG IN';
+    if (toggleText) toggleText.innerText = isSignUp ? 'Already have an account?' : "Don't have an account?";
+    if (toggleBtn) toggleBtn.innerText = isSignUp ? 'Log In' : 'Create Account';
+    
+    if (fieldUsername) {
+        if (isSignUp) {
+            fieldUsername.classList.remove('hidden');
+        } else {
+            fieldUsername.classList.add('hidden');
+        }
+    }
+}
 
     <!-- Merch & Stem Storefront Section -->
     <section id="store" class="py-20 px-6 max-w-7xl mx-auto">
