@@ -1,19 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYNTS WORLD | Official Music Platform</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Supabase Client Library -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <!-- Custom Stylesheet -->
-    <link rel="stylesheet" href="style.css">
+<!-- Header Navigation -->
+<header class="fixed top-0 left-0 w-full z-[100] glass-panel border-b border-white/10 px-6 py-4 pointer-events-auto">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-400 to-fuchsia-600 flex items-center justify-center font-extrabold text-black tracking-tighter text-xl">
+                S
+            </div>
+            <span class="font-black text-2xl tracking-widest text-white uppercase">SYNTS<span class="text-gradient">WORLD</span></span>
+        </div>
+
+        <nav class="hidden md:flex items-center space-x-8 text-sm font-semibold tracking-wider text-gray-300">
+            <a href="#music" class="hover:text-cyan-400 transition">MUSIC</a>
+            <a href="#store" class="hover:text-cyan-400 transition">MERCH & STEMS</a>
+            <a href="#vip" class="hover:text-cyan-400 transition">VIP VAULT</a>
+            <a href="#cli" class="hover:text-cyan-400 transition">TERMINAL</a>
+        </nav>
+
+        <div class="flex items-center space-x-4 relative z-[110]" id="nav-auth-container">
+            <button id="btn-open-login" onclick="window.openAuthModal('signin')" class="relative z-[120] pointer-events-auto cursor-pointer px-5 py-2.5 rounded-full bg-cyan-400/10 text-cyan-400 border border-cyan-500/30 font-bold text-xs uppercase tracking-wider hover:bg-cyan-400 hover:text-black transition">
+                SIGN IN
+            </button>
+            <a href="#vip" class="px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold text-xs uppercase tracking-wider hover:opacity-90 transition neon-glow">
+                JOIN SYNTS VIP
+            </a>
+        </div>
+    </div>
+</header>
     <script>
         tailwind.config = {
             theme: {
@@ -307,6 +320,7 @@
                     </ul>
                 </div>
                 <button onclick="openAuthModal('signup')" class="mt-8 w-full py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-black font-black hover:opacity-90 transition">JOIN VIP NOW</button>
+                
             </div>
         </div>
     </section>
