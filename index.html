@@ -1,64 +1,81 @@
-<!-- Include Supabase CDN in your <head> section -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script>
-    // Supabase Configuration
-    const SUPABASE_URL = "https://zvcmbjnsvkoqoycsopkm.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_EfalUd595D0IUkfQNQ-blw_P62Kpwca";
-
-    // Initialize Supabase Client
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // Handle Sign Up & Sign In
-    async function handleAuthSubmit(e) {
-        e.preventDefault();
-        const email = document.getElementById('auth-email').value;
-        const password = document.getElementById('auth-password').value;
-        const username = document.getElementById('auth-username')?.value;
-
-        if (currentAuthMode === 'signup') {
-            const { data, error } = await supabase.auth.signUp({
-                email: email,
-                password: password,
-                options: {
-                    data: { username: username || email.split('@')[0] }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYNTS WORLD | Official Music Platform</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        synts: {
+                            black: '#0a0a0c',
+                            card: '#12131a',
+                            accent: '#00f2fe',
+                            purple: '#7928ca',
+                            pink: '#ff0080',
+                            gold: '#ffd700',
+                        }
+                    }
                 }
-            });
-
-            if (error) {
-                alert("Error creating account: " + error.message);
-                return;
             }
-
-            alert("Account created successfully! Please check your email to verify.");
-            closeAuthModal();
-        } else {
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: password
-            });
-
-            if (error) {
-                alert("Login failed: " + error.message);
-                return;
-            }
-
-            closeAuthModal();
-            updateNavUserUI(data.user.email);
         }
-    }
-
-    // Check logged in user state on page load
-    window.onload = async function() {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-            updateNavUserUI(user.email);
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0c;
+            color: #f3f4f6;
+            overflow-x: hidden;
         }
-    };
+        .glass-panel {
+            background: rgba(18, 19, 26, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .neon-glow {
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.25);
+        }
+        .neon-glow-pink {
+            box-shadow: 0 0 25px rgba(255, 0, 128, 0.25);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0c; }
+        ::-webkit-scrollbar-thumb { background: #222430; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00f2fe; }
+    </style>
+</head>
+<body class="font-sans antialiased selection:bg-cyan-500 selection:text-black pb-32">
 
-    // Logout User
-    async function logoutUser() {
-        await supabase.auth.signOut();
-        window.location.reload();
-    }
-</script>
+    <!-- Header Navigation -->
+    <header class="fixed top-0 left-0 w-full z-40 glass-panel border-b border-white/10 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-400 to-fuchsia-600 flex items-center justify-center font-extrabold text-black tracking-tighter text-xl">
+                    S
+                </div>
+                <span class="font-black text-2xl tracking-widest text-white uppercase">SYNTS<span class="text-gradient">WORLD</span></span>
+            </div>
+
+            <nav class="hidden md:flex items-center space-x-8 text-sm font-semibold tracking-wider text-gray-300">
+                <a href="#music" class="hover:text-cyan-400 transition">MUSIC</a>
+                <a href="#store" class="hover:text-cyan-400 transition">MERCH & STEMS</a>
+                <a href="#vip" class="hover:text-cyan-400 transition">VIP VAULT</a>
+                <a href="#cli" class="hover:text-cyan-400 transition">TERMINAL</a>
