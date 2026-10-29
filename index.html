@@ -12,6 +12,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="style.css">
     <script>
         tailwind.config = {
             theme: {
@@ -34,35 +36,8 @@
             }
         }
     </script>
-    <style>
-        body {
-            background-color: #0a0a0c;
-            color: #f3f4f6;
-            overflow-x: hidden;
-        }
-        .glass-panel {
-            background: rgba(18, 19, 26, 0.75);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .neon-glow {
-            box-shadow: 0 0 25px rgba(0, 242, 254, 0.25);
-        }
-        .neon-glow-pink {
-            box-shadow: 0 0 25px rgba(255, 0, 128, 0.25);
-        }
-        .text-gradient {
-            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #00f2fe 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #0a0a0c; }
-        ::-webkit-scrollbar-thumb { background: #222430; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #00f2fe; }
-    </style>
 </head>
-<body class="font-sans antialiased selection:bg-cyan-500 selection:text-black pb-32">
+<body class="antialiased selection:bg-cyan-500 selection:text-black">
 
     <!-- Header Navigation -->
     <header class="fixed top-0 left-0 w-full z-40 glass-panel border-b border-white/10 px-6 py-4">
@@ -79,3 +54,269 @@
                 <a href="#store" class="hover:text-cyan-400 transition">MERCH & STEMS</a>
                 <a href="#vip" class="hover:text-cyan-400 transition">VIP VAULT</a>
                 <a href="#cli" class="hover:text-cyan-400 transition">TERMINAL</a>
+            </nav>
+
+            <div class="flex items-center space-x-4" id="nav-auth-container">
+                <button onclick="openAuthModal('signin')" id="btn-open-login" class="px-5 py-2.5 rounded-full bg-cyan-400/10 text-cyan-400 border border-cyan-500/30 font-bold text-xs uppercase tracking-wider hover:bg-cyan-400 hover:text-black transition">
+                    SIGN IN
+                </button>
+                <a href="#vip" class="px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold text-xs uppercase tracking-wider hover:opacity-90 transition neon-glow">
+                    JOIN SYNTS VIP
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sign In / Sign Up Modal -->
+    <div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md hidden transition-all duration-300">
+        <div class="relative w-full max-w-md p-8 glass-panel rounded-3xl border border-cyan-500/40 neon-glow mx-4">
+            <button onclick="closeAuthModal()" class="absolute top-6 right-6 text-gray-400 hover:text-white transition">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+
+            <div class="text-center mb-6">
+                <h3 id="modal-title" class="text-3xl font-black text-white">SIGN IN</h3>
+                <p id="modal-subtitle" class="text-xs font-mono text-cyan-400 mt-1">ACCESS YOUR SYNTS WORLD ACCOUNT</p>
+            </div>
+
+            <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                <div id="field-username" class="hidden">
+                    <label class="block text-xs font-mono text-gray-400 mb-1">USERNAME</label>
+                    <input type="text" id="auth-username" placeholder="SyntsFan1" class="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white focus:outline-none focus:border-cyan-400 font-mono text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-mono text-gray-400 mb-1">EMAIL ADDRESS</label>
+                    <input type="email" id="auth-email" required placeholder="fan@syntsworld.com" class="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white focus:outline-none focus:border-cyan-400 font-mono text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-mono text-gray-400 mb-1">PASSWORD</label>
+                    <input type="password" id="auth-password" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white focus:outline-none focus:border-cyan-400 font-mono text-sm">
+                </div>
+
+                <button type="submit" id="modal-submit-btn" class="w-full py-3.5 rounded-xl bg-cyan-400 text-black font-extrabold hover:bg-cyan-300 transition tracking-wider text-sm neon-glow mt-2">
+                    LOG IN
+                </button>
+            </form>
+
+            <div class="mt-6 text-center text-xs text-gray-400 border-t border-white/10 pt-4">
+                <span id="toggle-text">Don't have an account?</span>
+                <button type="button" onclick="toggleAuthMode()" id="toggle-btn" class="text-cyan-400 font-bold ml-1 hover:underline">
+                    Create Account
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="pt-36 pb-20 px-6 max-w-7xl mx-auto min-h-[85vh] flex flex-col justify-center relative">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            <div class="lg:col-span-7 space-y-6">
+                <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-950/50 border border-cyan-500/30 text-cyan-400 text-xs font-mono">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                    <span>NEW SINGLE DROP OUT NOW</span>
+                </div>
+                
+                <h1 class="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight leading-none text-white">
+                    SYNTS <br><span class="text-gradient">WORLD</span>
+                </h1>
+                
+                <p class="text-gray-400 text-lg md:text-xl max-w-xl font-light">
+                    Explore exclusive releases, multi-lingual poetic hip-hop, unreleased stems, official merchandise, and VIP backstage access.
+                </p>
+
+                <div class="flex flex-wrap gap-4 pt-4">
+                    <button onclick="playTrack('Musafir (Urdu Drill)', 'Synts', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3')" class="px-8 py-4 rounded-xl bg-cyan-400 text-black font-extrabold flex items-center space-x-3 hover:bg-cyan-300 transition neon-glow">
+                        <i data-lucide="play" class="fill-current w-5 h-5"></i>
+                        <span>STREAM NOW</span>
+                    </button>
+                    <a href="#store" class="px-8 py-4 rounded-xl glass-panel text-white font-bold hover:bg-white/10 transition border border-white/20">
+                        EXPLORE MERCH & STEMS
+                    </a>
+                </div>
+            </div>
+
+            <div class="lg:col-span-5 flex justify-center">
+                <div class="relative w-80 h-80 md:w-96 md:h-96 glass-panel rounded-3xl p-6 flex flex-col justify-between neon-glow-pink">
+                    <div class="absolute -top-4 -right-4 bg-fuchsia-600 text-white font-mono text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider">
+                        EXCLUSIVE DROP
+                    </div>
+                    <div class="w-full h-56 rounded-2xl bg-gradient-to-tr from-purple-900 via-indigo-950 to-slate-900 flex items-center justify-center relative overflow-hidden group">
+                        <div class="absolute inset-0 bg-black/40 group-hover:bg-black/10 transition"></div>
+                        <i data-lucide="disc" class="w-32 h-32 text-cyan-400/30 animate-spin" style="animation-duration: 10s;"></i>
+                        <span class="absolute text-3xl font-black tracking-widest text-white/90">SYNTS</span>
+                    </div>
+                    <div class="space-y-1 pt-2">
+                        <h3 class="text-xl font-bold text-white">Musafir (Urdu Drill)</h3>
+                        <p class="text-sm text-cyan-400 font-mono">Synts • Single Release</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Music Catalog Section -->
+    <section id="music" class="py-20 px-6 max-w-7xl mx-auto">
+        <div class="mb-12">
+            <h2 class="text-xs font-mono text-cyan-400 tracking-widest uppercase mb-2">// OFFICIAL CATALOG</h2>
+            <h3 class="text-4xl font-black text-white">STREAM & DOWNLOAD</h3>
+        </div>
+
+        <div class="space-y-4">
+            <div class="glass-panel rounded-2xl p-4 flex items-center justify-between hover:border-cyan-500/50 transition">
+                <div class="flex items-center space-x-4">
+                    <button onclick="playTrack('Musafir (Urdu Drill)', 'Synts', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3')" class="w-12 h-12 rounded-xl bg-cyan-400/10 text-cyan-400 flex items-center justify-center hover:bg-cyan-400 hover:text-black transition">
+                        <i data-lucide="play" class="w-6 h-6 fill-current"></i>
+                    </button>
+                    <div>
+                        <h4 class="font-bold text-lg text-white">Musafir (Urdu Drill)</h4>
+                        <p class="text-xs text-gray-400 font-mono">Bilingual Hip-Hop • 140 BPM</p>
+                    </div>
+                </div>
+                <span class="text-xs font-mono text-emerald-400 bg-emerald-950/50 border border-emerald-500/30 px-3 py-1 rounded-full">FREE STREAM</span>
+            </div>
+
+            <div class="glass-panel rounded-2xl p-4 flex items-center justify-between hover:border-cyan-500/50 transition">
+                <div class="flex items-center space-x-4">
+                    <button onclick="playTrack('Mukhtalif (Lo-Fi Session)', 'Synts', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3')" class="w-12 h-12 rounded-xl bg-cyan-400/10 text-cyan-400 flex items-center justify-center hover:bg-cyan-400 hover:text-black transition">
+                        <i data-lucide="play" class="w-6 h-6 fill-current"></i>
+                    </button>
+                    <div>
+                        <h4 class="font-bold text-lg text-white">Mukhtalif (Lo-Fi Session)</h4>
+                        <p class="text-xs text-gray-400 font-mono">Moody Instrumental • 88 BPM</p>
+                    </div>
+                </div>
+                <span class="text-xs font-mono text-emerald-400 bg-emerald-950/50 border border-emerald-500/30 px-3 py-1 rounded-full">FREE STREAM</span>
+            </div>
+
+            <div class="glass-panel rounded-2xl p-4 flex items-center justify-between border-fuchsia-500/30 hover:border-fuchsia-500 transition">
+                <div class="flex items-center space-x-4">
+                    <button onclick="playTrack('Muntazir (Unreleased VIP Demo)', 'Synts', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3')" class="w-12 h-12 rounded-xl bg-fuchsia-500/10 text-fuchsia-400 flex items-center justify-center hover:bg-fuchsia-500 hover:text-black transition">
+                        <i data-lucide="lock" class="w-5 h-5"></i>
+                    </button>
+                    <div>
+                        <h4 class="font-bold text-lg text-white">Muntazir (Unreleased VIP Demo)</h4>
+                        <p class="text-xs text-fuchsia-400 font-mono">Exclusive VIP Track • 128 BPM</p>
+                    </div>
+                </div>
+                <span class="text-xs font-mono text-fuchsia-400 bg-fuchsia-950/50 border border-fuchsia-500/30 px-3 py-1 rounded-full">VIP ACCESS ONLY</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Merch & Stem Storefront Section -->
+    <section id="store" class="py-20 px-6 max-w-7xl mx-auto">
+        <div class="mb-12">
+            <h2 class="text-xs font-mono text-cyan-400 tracking-widest uppercase mb-2">// WORLD STORE</h2>
+            <h3 class="text-4xl font-black text-white">DIGITAL STEMS & MERCH</h3>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="glass-panel rounded-3xl p-6 flex flex-col justify-between hover:border-cyan-500/50 transition">
+                <div class="w-full h-48 rounded-2xl bg-zinc-900 flex items-center justify-center mb-6">
+                    <i data-lucide="shopping-bag" class="w-16 h-16 text-cyan-400/40"></i>
+                </div>
+                <div>
+                    <h4 class="text-xl font-bold text-white mb-1">Synts World Limited Hoodie</h4>
+                    <p class="text-sm text-gray-400 mb-4">Heavyweight 450GSM Cotton with custom embroidered logo.</p>
+                </div>
+                <div class="flex items-center justify-between border-t border-white/10 pt-4">
+                    <span class="text-2xl font-black text-cyan-400">$65.00</span>
+                    <button class="px-4 py-2 rounded-xl bg-white/10 text-white font-bold text-xs hover:bg-cyan-400 hover:text-black transition">BUY NOW</button>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-3xl p-6 flex flex-col justify-between hover:border-cyan-500/50 transition">
+                <div class="w-full h-48 rounded-2xl bg-zinc-900 flex items-center justify-center mb-6">
+                    <i data-lucide="layers" class="w-16 h-16 text-fuchsia-400/40"></i>
+                </div>
+                <div>
+                    <h4 class="text-xl font-bold text-white mb-1">Musafir Full WAV Stem Pack</h4>
+                    <p class="text-sm text-gray-400 mb-4">Includes Vocals, Drums, Bassline, and FX WAV files for producers.</p>
+                </div>
+                <div class="flex items-center justify-between border-t border-white/10 pt-4">
+                    <span class="text-2xl font-black text-fuchsia-400">$20.00</span>
+                    <button class="px-4 py-2 rounded-xl bg-white/10 text-white font-bold text-xs hover:bg-fuchsia-400 hover:text-black transition">DOWNLOAD STEMS</button>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-3xl p-6 flex flex-col justify-between hover:border-cyan-500/50 transition">
+                <div class="w-full h-48 rounded-2xl bg-zinc-900 flex items-center justify-center mb-6">
+                    <i data-lucide="disc" class="w-16 h-16 text-amber-400/40"></i>
+                </div>
+                <div>
+                    <h4 class="text-xl font-bold text-white mb-1">Synts World 12" Vinyl LP</h4>
+                    <p class="text-sm text-gray-400 mb-4">Collector's Edition Clear Vinyl with signed poster insert.</p>
+                </div>
+                <div class="flex items-center justify-between border-t border-white/10 pt-4">
+                    <span class="text-2xl font-black text-amber-400">$35.00</span>
+                    <button class="px-4 py-2 rounded-xl bg-white/10 text-white font-bold text-xs hover:bg-amber-400 hover:text-black transition">PRE-ORDER</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- VIP Membership Vault Section -->
+    <section id="vip" class="py-20 px-6 max-w-7xl mx-auto">
+        <div class="text-center max-w-2xl mx-auto mb-16">
+            <h2 class="text-xs font-mono text-cyan-400 tracking-widest uppercase mb-2">// MONETIZATION & MEMBERSHIPS</h2>
+            <h3 class="text-4xl font-black text-white">SYNTS WORLD VIP ACCESS</h3>
+            <p class="text-gray-400 mt-2">Directly support independent music creation and get exclusive perks.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div class="glass-panel rounded-3xl p-8 border border-white/10 flex flex-col justify-between">
+                <div>
+                    <h4 class="text-2xl font-bold text-white">Free Listener</h4>
+                    <p class="text-gray-400 text-sm mt-1">For casual listeners and fans.</p>
+                    <div class="my-6"><span class="text-4xl font-black text-white">$0</span><span class="text-gray-400">/ forever</span></div>
+                    <ul class="space-y-3 text-sm text-gray-300">
+                        <li class="flex items-center space-x-2"><i data-lucide="check" class="w-4 h-4 text-cyan-400"></i><span>Stream public single releases</span></li>
+                    </ul>
+                </div>
+                <button class="mt-8 w-full py-3 rounded-xl glass-panel text-white font-bold">CURRENT PLAN</button>
+            </div>
+
+            <div class="glass-panel rounded-3xl p-8 border border-cyan-500/50 relative neon-glow flex flex-col justify-between">
+                <div class="absolute -top-3 right-6 bg-cyan-400 text-black font-bold text-xs px-3 py-1 rounded-full uppercase">RECOMMENDED</div>
+                <div>
+                    <h4 class="text-2xl font-bold text-white">Synts VIP Fan</h4>
+                    <p class="text-gray-400 text-sm mt-1">Unlocks full catalog and stem downloads.</p>
+                    <div class="my-6"><span class="text-4xl font-black text-gradient">$4.99</span><span class="text-gray-400">/ month</span></div>
+                    <ul class="space-y-3 text-sm text-gray-300">
+                        <li class="flex items-center space-x-2"><i data-lucide="check" class="w-4 h-4 text-cyan-400"></i><span>Stream unreleased demos & VIP vault</span></li>
+                        <li class="flex items-center space-x-2"><i data-lucide="check" class="w-4 h-4 text-cyan-400"></i><span>Download high-quality WAV stems</span></li>
+                    </ul>
+                </div>
+                <button onclick="openAuthModal('signup')" class="mt-8 w-full py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-black font-black hover:opacity-90 transition">JOIN VIP NOW</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- CLI Section -->
+    <section id="cli" class="py-20 px-6 max-w-4xl mx-auto">
+        <div class="glass-panel rounded-3xl p-6 border border-cyan-500/30 font-mono">
+            <div class="flex items-center justify-between pb-4 mb-4 border-b border-white/10 text-xs text-gray-400">
+                <span class="font-bold text-white">SYNTS-VAULT-CLI v1.0.0</span>
+                <span>TYPE 'help'</span>
+            </div>
+            <div id="terminal-output" class="text-sm space-y-2 h-48 overflow-y-auto mb-4 text-cyan-400">
+                <p class="text-gray-400">Synts Vault Terminal Online. Type <span class="text-white font-bold">'help'</span>.</p>
+            </div>
+            <div class="flex items-center space-x-2 border-t border-white/10 pt-3">
+                <span class="text-cyan-400">&gt;</span>
+                <input type="text" id="terminal-input" onkeydown="handleTerminalCommand(event)" placeholder="Enter command..." class="w-full bg-transparent text-white focus:outline-none text-sm font-mono">
+            </div>
+        </div>
+    </section>
+
+    <!-- Sticky Audio Player -->
+    <div class="fixed bottom-0 left-0 w-full glass-panel border-t border-white/10 px-6 py-4 z-40">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-xl bg-cyan-950 flex items-center justify-center text-cyan-400 border border-cyan-500/30">
+                    <i data-lucide="music" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h5 id="player-title" class="font-bold text-white text-sm">No Track Selected</h5>
