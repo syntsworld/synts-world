@@ -35,61 +35,10 @@
                 }
             }
         }
-        // Explicitly attach functions to the global window object
-window.currentAuthMode = 'signin';
-
-window.openAuthModal = function(mode = 'signin') {
-    window.currentAuthMode = mode;
-    updateAuthModalUI();
-    const modal = document.getElementById('auth-modal');
-    if (modal) {
-        modal.classList.remove('hidden');
-    } else {
-        console.error("Error: #auth-modal element not found in HTML!");
-    }
-};
-
-window.closeAuthModal = function() {
-    const modal = document.getElementById('auth-modal');
-    if (modal) {
-        modal.classList.add('hidden');
-    }
-};
-
-window.toggleAuthMode = function() {
-    window.currentAuthMode = window.currentAuthMode === 'signin' ? 'signup' : 'signin';
-    updateAuthModalUI();
-};
-
-function updateAuthModalUI() {
-    const isSignUp = window.currentAuthMode === 'signup';
-    const titleEl = document.getElementById('modal-title');
-    const subtitleEl = document.getElementById('modal-subtitle');
-    const submitBtn = document.getElementById('modal-submit-btn');
-    const toggleText = document.getElementById('toggle-text');
-    const toggleBtn = document.getElementById('toggle-btn');
-    const fieldUsername = document.getElementById('field-username');
-
-    if (titleEl) titleEl.innerText = isSignUp ? 'CREATE ACCOUNT' : 'SIGN IN';
-    if (subtitleEl) subtitleEl.innerText = isSignUp ? 'JOIN SYNTS WORLD VIP COMMUNITY' : 'ACCESS YOUR SYNTS WORLD ACCOUNT';
-    if (submitBtn) submitBtn.innerText = isSignUp ? 'CREATE ACCOUNT' : 'LOG IN';
-    if (toggleText) toggleText.innerText = isSignUp ? 'Already have an account?' : "Don't have an account?";
-    if (toggleBtn) toggleBtn.innerText = isSignUp ? 'Log In' : 'Create Account';
-    
-    if (fieldUsername) {
-        if (isSignUp) {
-            fieldUsername.classList.remove('hidden');
-        } else {
-            fieldUsername.classList.add('hidden');
-        }
-    }
-}
     </script>
 </head>
 <body class="antialiased selection:bg-cyan-500 selection:text-black">
 
-</script>
-    
     <!-- Header Navigation -->
     <header class="fixed top-0 left-0 w-full z-40 glass-panel border-b border-white/10 px-6 py-4">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
@@ -108,7 +57,7 @@ function updateAuthModalUI() {
             </nav>
 
             <div class="flex items-center space-x-4" id="nav-auth-container">
-                <button onclick="openAuthModal('signin')" id="btn-open-login" class="px-5 py-2.5 rounded-full bg-cyan-400/10 text-cyan-400 border border-cyan-500/30 font-bold text-xs uppercase tracking-wider hover:bg-cyan-400 hover:text-black transition">
+                <button id="btn-open-login" class="px-5 py-2.5 rounded-full bg-cyan-400/10 text-cyan-400 border border-cyan-500/30 font-bold text-xs uppercase tracking-wider hover:bg-cyan-400 hover:text-black transition">
                     SIGN IN
                 </button>
                 <a href="#vip" class="px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold text-xs uppercase tracking-wider hover:opacity-90 transition neon-glow">
@@ -128,6 +77,23 @@ function updateAuthModalUI() {
             <div class="text-center mb-6">
                 <h3 id="modal-title" class="text-3xl font-black text-white">SIGN IN</h3>
                 <p id="modal-subtitle" class="text-xs font-mono text-cyan-400 mt-1">ACCESS YOUR SYNTS WORLD ACCOUNT</p>
+            </div>
+
+            <!-- Google OAuth Sign In Button -->
+            <button type="button" onclick="signInWithGoogle()" class="w-full py-3 px-4 rounded-xl bg-white text-black font-bold hover:bg-gray-200 transition flex items-center justify-center space-x-3 text-sm mb-6 shadow-lg">
+                <svg class="w-5 h-5" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.18v3.15C3.15 21.32 7.22 24 12 24z"/>
+                    <path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.6H1.18C.43 8.12 0 9.82 0 12s.43 3.88 1.18 5.4l4.09-3.16z"/>
+                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.22 0 3.15 2.68 1.18 6.6l4.09 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/>
+                </svg>
+                <span>Continue with Google</span>
+            </button>
+
+            <div class="relative flex py-2 items-center mb-4">
+                <div class="flex-grow border-t border-white/10"></div>
+                <span class="flex-shrink mx-4 text-xs font-mono text-gray-500 uppercase">Or with email</span>
+                <div class="flex-grow border-t border-white/10"></div>
             </div>
 
             <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
@@ -255,7 +221,7 @@ function updateAuthModalUI() {
             </div>
         </div>
     </section>
-    
+
     <!-- Merch & Stem Storefront Section -->
     <section id="store" class="py-20 px-6 max-w-7xl mx-auto">
         <div class="mb-12">
@@ -341,47 +307,6 @@ function updateAuthModalUI() {
                     </ul>
                 </div>
                 <button onclick="openAuthModal('signup')" class="mt-8 w-full py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-black font-black hover:opacity-90 transition">JOIN VIP NOW</button>
-                <!-- Sign In / Sign Up Modal -->
-<div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md hidden transition-all duration-300">
-    <div class="relative w-full max-w-md p-8 glass-panel rounded-3xl border border-cyan-500/40 neon-glow mx-4">
-        <button onclick="closeAuthModal()" class="absolute top-6 right-6 text-gray-400 hover:text-white transition">
-            <i data-lucide="x" class="w-6 h-6"></i>
-        </button>
-
-        <div class="text-center mb-6">
-            <h3 id="modal-title" class="text-3xl font-black text-white">SIGN IN</h3>
-            <p id="modal-subtitle" class="text-xs font-mono text-cyan-400 mt-1">ACCESS YOUR SYNTS WORLD ACCOUNT</p>
-        </div>
-
-        <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
-            <div id="field-username" class="hidden">
-                <label class="block text-xs font-mono text-gray-400 mb-1">USERNAME</label>
-                <input type="text" id="auth-username" placeholder="SyntsFan1" class="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white focus:outline-none focus:border-cyan-400 font-mono text-sm">
-            </div>
-
-            <div>
-                <label class="block text-xs font-mono text-gray-400 mb-1">EMAIL ADDRESS</label>
-                <input type="email" id="auth-email" required placeholder="fan@syntsworld.com" class="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white focus:outline-none focus:border-cyan-400 font-mono text-sm">
-            </div>
-
-            <div>
-                <label class="block text-xs font-mono text-gray-400 mb-1">PASSWORD</label>
-                <input type="password" id="auth-password" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white focus:outline-none focus:border-cyan-400 font-mono text-sm">
-            </div>
-
-            <button type="submit" id="modal-submit-btn" class="w-full py-3.5 rounded-xl bg-cyan-400 text-black font-extrabold hover:bg-cyan-300 transition tracking-wider text-sm neon-glow mt-2">
-                LOG IN
-            </button>
-        </form>
-
-        <div class="mt-6 text-center text-xs text-gray-400 border-t border-white/10 pt-4">
-            <span id="toggle-text">Don't have an account?</span>
-            <button type="button" onclick="toggleAuthMode()" id="toggle-btn" class="text-cyan-400 font-bold ml-1 hover:underline">
-                Create Account
-            </button>
-        </div>
-    </div>
-</div>
             </div>
         </div>
     </section>
@@ -412,4 +337,200 @@ function updateAuthModalUI() {
                 </div>
                 <div>
                     <h5 id="player-title" class="font-bold text-white text-sm">No Track Selected</h5>
-                   
+                    <p id="player-artist" class="text-xs text-gray-400 font-mono">Synts World</p>
+                </div>
+            </div>
+            <button onclick="togglePlay()" id="play-btn" class="w-10 h-10 rounded-full bg-cyan-400 text-black flex items-center justify-center hover:bg-cyan-300 transition">
+                <i data-lucide="play" class="w-5 h-5 fill-current"></i>
+            </button>
+            <div class="hidden md:flex items-center space-x-3">
+                <input type="range" id="volume" min="0" max="1" step="0.1" value="0.8" onchange="adjustVolume(this.value)" class="w-24 accent-cyan-400">
+            </div>
+        </div>
+    </div>
+
+    <audio id="audio-player"></audio>
+
+    <!-- JavaScript logic -->
+    <script>
+        lucide.createIcons();
+
+        // Supabase Configuration
+        const SUPABASE_URL = "https://zvcmbjnsvkoqoycsopkm.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_EfalUd595D0IUkfQNQ-blw_P62Kpwca";
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Audio Player Logic
+        const audio = document.getElementById('audio-player');
+        let isPlaying = false;
+
+        function playTrack(title, artist, src) {
+            document.getElementById('player-title').innerText = title;
+            document.getElementById('player-artist').innerText = artist;
+            audio.src = src;
+            audio.play();
+            isPlaying = true;
+            updatePlayBtn();
+        }
+
+        function togglePlay() {
+            if(!audio.src) return;
+            if(isPlaying) { audio.pause(); isPlaying = false; }
+            else { audio.play(); isPlaying = true; }
+            updatePlayBtn();
+        }
+
+        function updatePlayBtn() {
+            const btn = document.getElementById('play-btn');
+            if(btn) {
+                btn.innerHTML = isPlaying ? `<i data-lucide="pause" class="w-5 h-5 fill-current"></i>` : `<i data-lucide="play" class="w-5 h-5 fill-current"></i>`;
+                lucide.createIcons();
+            }
+        }
+
+        function adjustVolume(val) { audio.volume = val; }
+
+        // Modal Controls & Event Listeners
+        let currentAuthMode = 'signin';
+
+        function openAuthModal(mode = 'signin') {
+            currentAuthMode = mode;
+            updateAuthModalUI();
+            const modal = document.getElementById('auth-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function closeAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function toggleAuthMode() {
+            currentAuthMode = currentAuthMode === 'signin' ? 'signup' : 'signin';
+            updateAuthModalUI();
+        }
+
+        function updateAuthModalUI() {
+            const isSignUp = currentAuthMode === 'signup';
+            const titleEl = document.getElementById('modal-title');
+            const subtitleEl = document.getElementById('modal-subtitle');
+            const submitBtn = document.getElementById('modal-submit-btn');
+            const toggleText = document.getElementById('toggle-text');
+            const toggleBtn = document.getElementById('toggle-btn');
+            const fieldUsername = document.getElementById('field-username');
+
+            if (titleEl) titleEl.innerText = isSignUp ? 'CREATE ACCOUNT' : 'SIGN IN';
+            if (subtitleEl) subtitleEl.innerText = isSignUp ? 'JOIN SYNTS WORLD VIP COMMUNITY' : 'ACCESS YOUR SYNTS WORLD ACCOUNT';
+            if (submitBtn) submitBtn.innerText = isSignUp ? 'CREATE ACCOUNT' : 'LOG IN';
+            if (toggleText) toggleText.innerText = isSignUp ? 'Already have an account?' : "Don't have an account?";
+            if (toggleBtn) toggleBtn.innerText = isSignUp ? 'Log In' : 'Create Account';
+            
+            if (fieldUsername) {
+                if (isSignUp) {
+                    fieldUsername.classList.remove('hidden');
+                } else {
+                    fieldUsername.classList.add('hidden');
+                }
+            }
+        }
+
+        // Guaranteed Click Listener Binding on Page Load
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginBtn = document.getElementById('btn-open-login');
+            if (loginBtn) {
+                loginBtn.addEventListener('click', () => openAuthModal('signin'));
+            }
+        });
+
+        // Google OAuth Sign In
+        async function signInWithGoogle() {
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin
+                }
+            });
+            if (error) {
+                alert("Google Sign In Error: " + error.message);
+            }
+        }
+
+        // Email/Password Supabase Auth Submission
+        async function handleAuthSubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const username = document.getElementById('auth-username')?.value;
+
+            if (currentAuthMode === 'signup') {
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: { data: { username: username || email.split('@')[0] } }
+                });
+
+                if (error) { alert("Error: " + error.message); return; }
+                alert("Account created successfully! Please check your email to verify.");
+                closeAuthModal();
+            } else {
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) { alert("Login failed: " + error.message); return; }
+                closeAuthModal();
+                updateNavUserUI(data.user.email);
+            }
+        }
+
+        function updateNavUserUI(email) {
+            const authContainer = document.getElementById('nav-auth-container');
+            if(email && authContainer) {
+                authContainer.innerHTML = `
+                    <div class="flex items-center space-x-3 bg-white/5 border border-white/10 px-4 py-2 rounded-full">
+                        <i data-lucide="user" class="w-4 h-4 text-cyan-400"></i>
+                        <span class="text-xs font-mono text-cyan-400">${email.split('@')[0]}</span>
+                        <button onclick="logoutUser()" class="text-xs text-gray-400 hover:text-red-400 ml-2">Log out</button>
+                    </div>
+                `;
+                lucide.createIcons();
+            }
+        }
+
+        async function logoutUser() {
+            await supabase.auth.signOut();
+            window.location.reload();
+        }
+
+        window.onload = async function() {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) { updateNavUserUI(user.email); }
+            } catch (err) {
+                console.log("No active session");
+            }
+        };
+
+        // Terminal
+        function handleTerminalCommand(e) {
+            if (e.key === 'Enter') {
+                const input = e.target.value.trim().toLowerCase();
+                const output = document.getElementById('terminal-output');
+                let response = '';
+
+                if(input === 'help') { response = "Commands: <span class='text-white'>tracks, stems, vip, login, clear</span>"; }
+                else if(input === 'login') { openAuthModal('signin'); response = "Opening Sign In..."; }
+                else if(input === 'tracks') { response = "1. Musafir<br>2. Mukhtalif<br>3. Muntazir"; }
+                else if(input === 'vip') { response = "Join VIP for $4.99/mo."; }
+                else if(input === 'clear') { output.innerHTML = ''; e.target.value = ''; return; }
+                else { response = `Unknown: '${input}'. Type <span class='text-white'>'help'</span>.`; }
+
+                output.innerHTML += `<div><span class="text-white">&gt; ${input}</span><br>${response}</div>`;
+                output.scrollTop = output.scrollHeight;
+                e.target.value = '';
+            }
+        }
+    </script>
+</body>
+</html>
