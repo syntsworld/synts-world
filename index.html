@@ -320,3 +320,50 @@
                 </div>
                 <div>
                     <h5 id="player-title" class="font-bold text-white text-sm">No Track Selected</h5>
+                    // Bulletproof Modal Controls
+let currentAuthMode = 'signin';
+
+function openAuthModal(mode = 'signin') {
+    currentAuthMode = mode;
+    updateAuthModalUI();
+    const modal = document.getElementById('auth-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+}
+
+function closeAuthModal() {
+    const modal = document.getElementById('auth-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+function toggleAuthMode() {
+    currentAuthMode = currentAuthMode === 'signin' ? 'signup' : 'signin';
+    updateAuthModalUI();
+}
+
+function updateAuthModalUI() {
+    const isSignUp = currentAuthMode === 'signup';
+    const titleEl = document.getElementById('modal-title');
+    const subtitleEl = document.getElementById('modal-subtitle');
+    const submitBtn = document.getElementById('modal-submit-btn');
+    const toggleText = document.getElementById('toggle-text');
+    const toggleBtn = document.getElementById('toggle-btn');
+    const fieldUsername = document.getElementById('field-username');
+
+    if (titleEl) titleEl.innerText = isSignUp ? 'CREATE ACCOUNT' : 'SIGN IN';
+    if (subtitleEl) subtitleEl.innerText = isSignUp ? 'JOIN SYNTS WORLD VIP COMMUNITY' : 'ACCESS YOUR SYNTS WORLD ACCOUNT';
+    if (submitBtn) submitBtn.innerText = isSignUp ? 'CREATE ACCOUNT' : 'LOG IN';
+    if (toggleText) toggleText.innerText = isSignUp ? 'Already have an account?' : "Don't have an account?";
+    if (submitBtn) submitBtn.innerText = isSignUp ? 'CREATE ACCOUNT' : 'LOG IN';
+    
+    if (fieldUsername) {
+        if (isSignUp) {
+            fieldUsername.classList.remove('hidden');
+        } else {
+            fieldUsername.classList.add('hidden');
+        }
+    }
+}
