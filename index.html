@@ -1,32 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- Header Navigation -->
-<header class="fixed top-0 left-0 w-full z-[100] glass-panel border-b border-white/10 px-6 py-4 pointer-events-auto">
-    <div class="max-w-7xl mx-auto flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-400 to-fuchsia-600 flex items-center justify-center font-extrabold text-black tracking-tighter text-xl">
-                S
-            </div>
-            <span class="font-black text-2xl tracking-widest text-white uppercase">SYNTS<span class="text-gradient">WORLD</span></span>
-        </div>
-
-        <nav class="hidden md:flex items-center space-x-8 text-sm font-semibold tracking-wider text-gray-300">
-            <a href="#music" class="hover:text-cyan-400 transition">MUSIC</a>
-            <a href="#store" class="hover:text-cyan-400 transition">MERCH & STEMS</a>
-            <a href="#vip" class="hover:text-cyan-400 transition">VIP VAULT</a>
-            <a href="#cli" class="hover:text-cyan-400 transition">TERMINAL</a>
-        </nav>
-
-        <div class="flex items-center space-x-4 relative z-[110]" id="nav-auth-container">
-            <button id="btn-open-login" onclick="window.openAuthModal('signin')" class="relative z-[120] pointer-events-auto cursor-pointer px-5 py-2.5 rounded-full bg-cyan-400/10 text-cyan-400 border border-cyan-500/30 font-bold text-xs uppercase tracking-wider hover:bg-cyan-400 hover:text-black transition">
-                SIGN IN
-            </button>
-            <a href="#vip" class="px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold text-xs uppercase tracking-wider hover:opacity-90 transition neon-glow">
-                JOIN SYNTS VIP
-            </a>
-        </div>
-    </div>
-</header>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Synts World</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+body {background:#0a0a0c; color:#fff; font-family:Outfit,sans-serif;}
+.glass-panel {background:rgba(18,19,26,.9);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(18px);}
+.text-gradient {background:linear-gradient(90deg,#00f2fe,#bd42ee,#ff0080);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.neon-glow {box-shadow:0 0 24px rgba(0,242,254,.12);}
+.neon-glow-pink {box-shadow:0 0 28px rgba(255,0,128,.16);}
+</style>
     <script>
         tailwind.config = {
             theme: {
@@ -70,7 +60,7 @@
             </nav>
 
             <div class="flex items-center space-x-4" id="nav-auth-container">
-                <button id="btn-open-login" class="px-5 py-2.5 rounded-full bg-cyan-400/10 text-cyan-400 border border-cyan-500/30 font-bold text-xs uppercase tracking-wider hover:bg-cyan-400 hover:text-black transition">
+                <button type="button" id="btn-open-login" onclick="openAuthModal('signin')" class="px-5 py-2.5 rounded-full bg-cyan-400/10 text-cyan-400 border border-cyan-500/30 font-bold text-xs uppercase tracking-wider hover:bg-cyan-400 hover:text-black transition">
                     SIGN IN
                 </button>
                 <a href="#vip" class="px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold text-xs uppercase tracking-wider hover:opacity-90 transition neon-glow">
@@ -367,12 +357,13 @@
 
     <!-- JavaScript logic -->
     <script>
-        lucide.createIcons();
+        if (window.lucide) lucide.createIcons();
 
         // Supabase Configuration
         const SUPABASE_URL = "https://zvcmbjnsvkoqoycsopkm.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_EfalUd595D0IUkfQNQ-blw_P62Kpwca";
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        if (!supabaseClient) console.error('Supabase library failed to load. Check network / CDN access.');
 
         // Audio Player Logic
         const audio = document.getElementById('audio-player');
@@ -398,7 +389,7 @@
             const btn = document.getElementById('play-btn');
             if(btn) {
                 btn.innerHTML = isPlaying ? `<i data-lucide="pause" class="w-5 h-5 fill-current"></i>` : `<i data-lucide="play" class="w-5 h-5 fill-current"></i>`;
-                lucide.createIcons();
+                if (window.lucide) lucide.createIcons();
             }
         }
 
@@ -462,7 +453,8 @@
 
         // Google OAuth Sign In
         async function signInWithGoogle() {
-            const { data, error } = await supabase.auth.signInWithOAuth({
+            if (!supabaseClient) { alert('Authentication library did not load. Check your internet connection.'); return; }
+            const { data, error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
                     redirectTo: window.location.origin
@@ -476,12 +468,13 @@
         // Email/Password Supabase Auth Submission
         async function handleAuthSubmit(e) {
             e.preventDefault();
+            if (!supabaseClient) { alert('Authentication library did not load. Check your internet connection.'); return; }
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
             const username = document.getElementById('auth-username')?.value;
 
             if (currentAuthMode === 'signup') {
-                const { data, error } = await supabase.auth.signUp({
+                const { data, error } = await supabaseClient.auth.signUp({
                     email: email,
                     password: password,
                     options: { data: { username: username || email.split('@')[0] } }
@@ -491,7 +484,7 @@
                 alert("Account created successfully! Please check your email to verify.");
                 closeAuthModal();
             } else {
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
                 if (error) { alert("Login failed: " + error.message); return; }
                 closeAuthModal();
                 updateNavUserUI(data.user.email);
@@ -504,22 +497,23 @@
                 authContainer.innerHTML = `
                     <div class="flex items-center space-x-3 bg-white/5 border border-white/10 px-4 py-2 rounded-full">
                         <i data-lucide="user" class="w-4 h-4 text-cyan-400"></i>
-                        <span class="text-xs font-mono text-cyan-400">${email.split('@')[0]}</span>
+                        <span class="text-xs font-mono text-cyan-400">${email.split('@')[0].replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</span>
                         <button onclick="logoutUser()" class="text-xs text-gray-400 hover:text-red-400 ml-2">Log out</button>
                     </div>
                 `;
-                lucide.createIcons();
+                if (window.lucide) lucide.createIcons();
             }
         }
 
         async function logoutUser() {
-            await supabase.auth.signOut();
+            await supabaseClient.auth.signOut();
             window.location.reload();
         }
 
         window.onload = async function() {
             try {
-                const { data: { user } } = await supabase.auth.getUser();
+                if (!supabaseClient) return;
+                const { data: { user } } = await supabaseClient.auth.getUser();
                 if (user) { updateNavUserUI(user.email); }
             } catch (err) {
                 console.log("No active session");
