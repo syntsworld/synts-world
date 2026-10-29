@@ -1,59 +1,64 @@
-// Initialize Supabase Client (Paste your keys from Step 1)
-const SUPABASE_URL = "YOUR_SUPABASE_PROJECT_URL";
-const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<!-- Include Supabase CDN in your <head> section -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-// Handle Real Sign Up & Sign In
-async function handleAuthSubmit(e) {
-    e.preventDefault();
-    const email = document.getElementById('auth-email').value;
-    const password = document.getElementById('auth-password').value;
-    const username = document.getElementById('auth-username')?.value;
+<script>
+    // Supabase Configuration
+    const SUPABASE_URL = "https://zvcmbjnsvkoqoycsopkm.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_EfalUd595D0IUkfQNQ-blw_P62Kpwca";
 
-    if (currentAuthMode === 'signup') {
-        // Create new account in Supabase Database
-        const { data, error } = await supabase.auth.signUp({
-            email: email,
-            password: password,
-            options: {
-                data: { username: username || email.split('@')[0] }
+    // Initialize Supabase Client
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Handle Sign Up & Sign In
+    async function handleAuthSubmit(e) {
+        e.preventDefault();
+        const email = document.getElementById('auth-email').value;
+        const password = document.getElementById('auth-password').value;
+        const username = document.getElementById('auth-username')?.value;
+
+        if (currentAuthMode === 'signup') {
+            const { data, error } = await supabase.auth.signUp({
+                email: email,
+                password: password,
+                options: {
+                    data: { username: username || email.split('@')[0] }
+                }
+            });
+
+            if (error) {
+                alert("Error creating account: " + error.message);
+                return;
             }
-        });
 
-        if (error) {
-            alert("Error creating account: " + error.message);
-            return;
+            alert("Account created successfully! Please check your email to verify.");
+            closeAuthModal();
+        } else {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+            if (error) {
+                alert("Login failed: " + error.message);
+                return;
+            }
+
+            closeAuthModal();
+            updateNavUserUI(data.user.email);
         }
+    }
 
-        alert("Account created successfully! Check your email to verify.");
-        closeAuthModal();
-    } else {
-        // Sign in existing user
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email: email,
-            password: password
-        });
-
-        if (error) {
-            alert("Login failed: " + error.message);
-            return;
+    // Check logged in user state on page load
+    window.onload = async function() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            updateNavUserUI(user.email);
         }
+    };
 
-        closeAuthModal();
-        updateNavUserUI(data.user.email);
+    // Logout User
+    async function logoutUser() {
+        await supabase.auth.signOut();
+        window.location.reload();
     }
-}
-
-// Check logged in user state on page load
-window.onload = async function() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-        updateNavUserUI(user.email);
-    }
-};
-
-// Logout User
-async function logoutUser() {
-    await supabase.auth.signOut();
-    window.location.reload();
-}
+</script>
