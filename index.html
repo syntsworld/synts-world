@@ -211,11 +211,12 @@ function renderAccount(){
   signIn.onclick=()=>openAuthModal('signin');wrap.append(signIn);
  }else{
   const name=document.createElement('span');name.className='text-cyan-400 text-sm font-semibold';
-  name.textContent=(currentUser.user_metadata?.username||currentUser.email?.split('@')[0]||'Member')+(isVip?' ★ VIP':'');
+  name.textContent = currentUser.user_metadata?.username
+  || currentUser.email?.split('@')[0]
+  || 'Member';);
   const signOut=document.createElement('button');signOut.textContent='LOG OUT';signOut.className='px-3 py-2 rounded-full border border-white/20 text-xs';signOut.onclick=logoutUser;
   wrap.append(name,signOut);
  }
- const vipLink=document.createElement('a');vipLink.href='#vip';vipLink.textContent='JOIN SYNTS VIP';
  vipLink.className='px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold text-xs';wrap.append(vipLink);
  renderStudioAuth();
 }
@@ -280,7 +281,7 @@ function fallbackReleases(){return [
  {id:'showcase-musafir',title:'Musafir (Urdu Drill)',artist_name:'Synts',release_type:'track',genre:'Hip-Hop',price_inr:49,preview_url:CONFIG.publicTracks['Musafir (Urdu Drill)']||'',cover_url:'',is_showcase:true},
  {id:'showcase-mukhtalif',title:'Mukhtalif (Lo-Fi Session)',artist_name:'Synts',release_type:'track',genre:'Lo-Fi',price_inr:39,preview_url:CONFIG.publicTracks['Mukhtalif (Lo-Fi Session)']||'',cover_url:'',is_showcase:true},
  {id:'showcase-ep',title:'After Hours',artist_name:'Synts',release_type:'ep',genre:'Electronic',price_inr:149,preview_url:'',cover_url:'',is_showcase:true},
- {id:'showcase-playlist',title:'Independent Frequencies',artist_name:'SYNTS WORLD',release_type:'playlist',genre:'Mixed',price_inr:99,preview_url:'',cover_url:'',is_showcase:true}
+ {id:'showcase-playlist',title:'Independent Frequencies',artist_name:'Synts',release_type:'playlist',genre:'Mixed',price_inr:99,preview_url:'',cover_url:'',is_showcase:true}
 ];}
 async function loadReleases(){
  let results=[];
