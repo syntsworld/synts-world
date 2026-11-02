@@ -212,6 +212,7 @@ function renderAccount(){
  }else{
   const name=document.createElement('span');name.className='text-cyan-400 text-sm font-semibold';
   name.textContent = currentUser.user_metadata?.username
+      
   || currentUser.email?.split('@')[0]
   || 'Member';);
   const signOut=document.createElement('button');signOut.textContent='LOG OUT';signOut.className='px-3 py-2 rounded-full border border-white/20 text-xs';signOut.onclick=logoutUser;
