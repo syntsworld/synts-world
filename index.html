@@ -23,6 +23,70 @@
 })();
 </script>
 
+  <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const speakBtn = document.getElementById('speakBtn');
+  const translateBtn = document.getElementById('translateBtn');
+  const langSelect = document.getElementById('targetLanguage');
+
+  // 1. Text-to-Speech (Listen Feature) using Web Speech API
+  speakBtn.addEventListener('click', () => {
+    if (!('speechSynthesis' in window)) {
+      alert('Text-to-speech is not supported in your browser.');
+      return;
+    }
+
+    // Stop any ongoing speech
+    window.speechSynthesis.cancel();
+
+    // Gather main text content from the page to read aloud
+    // (You can target specific containers like main headings, descriptions, or body text)
+    const textToRead = document.querySelector('meta[name="description"]')?.content || 
+                       document.querySelector('title')?.innerText || 
+                       document.body.innerText;
+
+    const utterance = new SpeechSynthesisUtterance(textToRead);
+    utterance.lang = langSelect.value || 'en';
+    utterance.rate = 1.0; // Speed
+
+    window.speechSynthesis.speak(utterance);
+  });
+
+  // 2. Translation Feature
+  translateBtn.addEventListener('click', async () => {
+    const targetLang = langSelect.value;
+    const metaDesc = document.querySelector('meta[name="description"]');
+    const titleTag = document.querySelector('title');
+
+    // Example using MyMemory free translation API endpoint
+    try {
+      translateBtn.innerText = 'Translating...';
+      
+      const textToTranslate = metaDesc ? metaDesc.content : "SYNTS MUSIC: an artist-first marketplace for creativity.";
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(textToTranslate)}&langpair=en|${targetLang}`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data && data.responseData) {
+        const translatedText = data.responseData.translatedText;
+        
+        // Update elements dynamically
+        if (metaDesc) metaDesc.content = translatedText;
+        if (titleTag) titleTag.innerText = `SYNTS - ${translatedText}`;
+        
+        alert(`Translated to ${targetLang.toUpperCase()}:\n"${translatedText}"`);
+      }
+    } catch (error) {
+      console.error('Translation failed:', error);
+      alert('Translation service error. Please try again later.');
+    } finally {
+      translateBtn.innerText = 'Translate Page';
+    }
+  });
+});
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
