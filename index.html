@@ -53,4 +53,1522 @@ html[data-theme="light"] {
   --text: #0c0e14; --muted: #4b5060; --dim: #6b7080;
   --line: rgba(12,14,20,.10); --line-strong: rgba(12,14,20,.22);
   --field: #ffffff; --soft: rgba(12,14,20,.04); --soft-hover: rgba(12,14,20,.08);
-  --overlay: rgba(15,17,
+  --overlay: rgba(15,17,25,.45); --shadow: 0 24px 60px rgba(15,17,25,.12);
+  --danger-text: #b91c1c; --hero-alpha: .18; --accent-text: var(--accent-deep);
+}
+html[data-accent="green"]  { --accent:#4ade80; --accent-hover:#86efac; --accent-deep:#15803d; --on-accent:#03140a; --accent-rgb:74,222,128; }
+html[data-accent="purple"] { --accent:#a78bfa; --accent-hover:#c4b5fd; --accent-deep:#6d28d9; --on-accent:#12062b; --accent-rgb:167,139,250; }
+html[data-accent="rose"]   { --accent:#fb7185; --accent-hover:#fda4af; --accent-deep:#be123c; --on-accent:#1f0409; --accent-rgb:251,113,133; }
+html[data-accent="gold"]   { --accent:#facc15; --accent-hover:#fde047; --accent-deep:#a16207; --on-accent:#1a1300; --accent-rgb:250,204,21; }
+html[data-accent="blue"]   { --accent:#38bdf8; --accent-hover:#7dd3fc; --accent-deep:#0369a1; --on-accent:#031420; --accent-rgb:56,189,248; }
+html[data-font="s"] { --note-size: 13px; }
+html[data-font="m"] { --note-size: 15px; }
+html[data-font="l"] { --note-size: 18px; }
+
+/* ===================== BASE ===================== */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: calc(var(--header-h) + 16px); }
+html.reduce-motion { scroll-behavior: auto; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5;
+       padding-bottom: 92px; -webkit-font-smoothing: antialiased; transition: background-color .25s, color .25s; }
+body.modal-open { overflow: hidden; }
+::selection { background: var(--accent); color: var(--on-accent); }
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: 0; padding: 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+h1, h2, h3, h4, p { margin: 0; }
+.hidden { display: none !important; }
+.skip { position: absolute; left: -999px; top: 8px; z-index: 300; background: var(--accent); color: var(--on-accent); padding: 8px 14px; border-radius: 8px; font-weight: 800; }
+.skip:focus { left: 8px; }
+
+/* ===================== UTILITIES ===================== */
+.wrap { max-width: var(--maxw); margin: 0 auto; }
+.section { padding: 96px 24px; }
+.section-alt { background: var(--bg-alt); }
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.between { justify-content: space-between; }
+.center { text-align: center; }
+.stack > * + * { margin-top: 14px; }
+.mt { margin-top: 16px; } .mt-s { margin-top: 8px; } .mb { margin-bottom: 16px; }
+.w-full { width: 100%; }
+.muted { color: var(--muted); } .dim { color: var(--dim); }
+.small { font-size: 12px; } .tiny { font-size: 11px; }
+.mono { font-family: var(--mono); }
+.accent-text { color: var(--accent-text); }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gradient-text { background: linear-gradient(90deg, var(--accent-text), #ef4444); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .18em; color: var(--accent-text); text-transform: uppercase; }
+.h2 { font-size: clamp(2.1rem, 5vw, 3.2rem); font-weight: 900; line-height: 1.08; margin-top: 8px; letter-spacing: -.01em; }
+.lead { color: var(--muted); margin-top: 12px; font-size: 1.05rem; }
+.grid-2, .grid-3, .grid-4 { display: grid; gap: 24px; grid-template-columns: 1fr; }
+@media (min-width: 720px)  { .grid-3 { grid-template-columns: repeat(3, 1fr); } .grid-4 { grid-template-columns: repeat(2, 1fr); } .form-2 { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 1024px) { .grid-2 { grid-template-columns: 1fr 1fr; } .grid-4 { grid-template-columns: repeat(4, 1fr); } }
+.ic { width: 20px; height: 20px; flex-shrink: 0; }
+.ic-s { width: 16px; height: 16px; } .ic-l { width: 28px; height: 28px; } .ic-xl { width: 60px; height: 60px; opacity: .6; }
+
+/* ===================== COMPONENTS ===================== */
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 24px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: var(--shadow); }
+.pad { padding: 24px; }
+@media (min-width: 720px) { .pad-l { padding: 36px; } }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 22px; border-radius: 12px; font-weight: 800; letter-spacing: .02em; border: 1px solid transparent; transition: background-color .15s, border-color .15s, transform .15s, opacity .15s; white-space: nowrap; }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: var(--on-accent); }
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+.btn-ghost { border-color: var(--line-strong); }
+.btn-ghost:hover { background: var(--soft-hover); }
+.btn-soft { background: var(--soft); border-color: var(--line); }
+.btn-soft:hover:not(:disabled) { background: var(--soft-hover); }
+.btn-danger { border-color: rgba(239,68,68,.4); color: var(--danger-text); }
+.btn-danger:hover { background: rgba(239,68,68,.1); }
+.btn-sm { padding: 8px 12px; font-size: 12px; border-radius: 10px; }
+.btn-lg { padding: 16px 28px; }
+.btn-google { background: #fff; color: #111; border-color: var(--line-strong); }
+.btn-google:hover { background: #f1f1f1; }
+.link { color: var(--accent-text); font-weight: 700; font-size: 13px; }
+.link:hover { text-decoration: underline; }
+.icon-btn { width: 40px; height: 40px; border-radius: 999px; display: inline-grid; place-items: center; border: 1px solid var(--line); background: var(--soft); font-size: 17px; line-height: 1; transition: background-color .15s; }
+.icon-btn:hover { background: var(--soft-hover); }
+
+.label { display: block; font-size: 12px; color: var(--muted); letter-spacing: .05em; font-weight: 600; }
+.input { display: block; width: 100%; margin-top: 8px; padding: 13px 14px; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--field); color: var(--text); outline: none; transition: border-color .15s, box-shadow .15s; }
+.input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), .18); }
+.input::placeholder { color: var(--dim); }
+textarea.input { resize: vertical; min-height: 110px; }
+select.input { cursor: pointer; }
+.form-2 { display: grid; gap: 16px; }
+.check { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; color: var(--muted); }
+input[type="checkbox"], input[type="range"] { accent-color: var(--accent); }
+input[type="checkbox"] { width: 20px; height: 20px; flex-shrink: 0; cursor: pointer; }
+
+.pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(var(--accent-rgb), .35); background: rgba(var(--accent-rgb), .10); color: var(--accent-text); font-family: var(--mono); font-size: 12px; letter-spacing: .15em; }
+.dot { width: 8px; height: 8px; border-radius: 99px; background: var(--accent); }
+.chip { padding: 8px 18px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--soft); font-weight: 700; font-size: 14px; }
+.chip:hover { background: var(--soft-hover); }
+.chip.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+
+.notice { position: fixed; top: var(--header-h); inset-inline: 0; z-index: 35; padding: 10px 16px; text-align: center; font-size: 13px; background: #7c2d12; color: #fff; }
+.form-msg { margin-top: 12px; font-size: 14px; padding: 10px 12px; border-radius: 10px; }
+.form-msg.error { color: var(--danger-text); background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.25); }
+.form-msg.success { color: var(--accent-text); background: rgba(var(--accent-rgb), .08); border: 1px solid rgba(var(--accent-rgb), .3); }
+
+/* ===================== HEADER ===================== */
+.site-header { position: fixed; top: 0; inset-inline: 0; z-index: 40; background: var(--panel); border-bottom: 1px solid var(--line); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+.header-inner { max-width: var(--maxw); margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-weight: 900; font-size: 22px; color: #000; background: linear-gradient(45deg, var(--accent), #dc2626); }
+.brand-name { font-weight: 900; letter-spacing: .08em; font-size: 20px; }
+.nav { display: flex; gap: 26px; font-size: 14px; font-weight: 600; color: var(--muted); }
+.nav a:hover { color: var(--accent-text); }
+.header-actions { display: flex; align-items: center; gap: 8px; }
+.user-chip { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 999px; border: 1px solid var(--line); background: var(--soft); font-size: 13px; font-weight: 700; max-width: 180px; }
+.avatar { width: 30px; height: 30px; border-radius: 99px; display: grid; place-items: center; background: var(--accent); color: var(--on-accent); font-weight: 900; font-size: 13px; flex-shrink: 0; }
+@media (max-width: 880px) {
+  .nav { order: 3; width: 100%; overflow-x: auto; gap: 18px; font-size: 13px; padding-bottom: 2px; }
+  .brand-name { font-size: 17px; }
+  :root { --header-h: 108px; }
+}
+
+/* ===================== HERO ===================== */
+.hero { padding: calc(var(--header-h) + 90px) 24px 96px; background-image:
+  radial-gradient(ellipse at 75% 22%, rgba(var(--accent-rgb), var(--hero-alpha)), transparent 45%),
+  radial-gradient(ellipse at 15% 85%, rgba(239,68,68, calc(var(--hero-alpha) / 3)), transparent 46%); }
+.hero-grid { display: grid; gap: 48px; align-items: center; }
+@media (min-width: 1024px) { .hero-grid { grid-template-columns: 1fr 1fr; } }
+.hero h1 { font-size: clamp(2.6rem, 6.2vw, 4.3rem); font-weight: 900; line-height: 1.05; letter-spacing: -.02em; margin: 28px 0; }
+.hero-perks { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 40px; color: var(--muted); font-size: 14px; }
+.hero-art { position: relative; max-width: 480px; width: 100%; margin: 0 auto; }
+.hero-art .panel { padding: 20px; border-radius: 32px; }
+.art { aspect-ratio: 1; border-radius: 24px; position: relative; overflow: hidden; display: grid; place-items: center; }
+.art-text { position: absolute; left: 28px; bottom: 28px; font-size: clamp(2rem, 6vw, 3rem); font-weight: 900; line-height: 1; color: #fff; }
+.record { width: 56%; aspect-ratio: 1; border-radius: 50%; border: 24px solid rgba(0,0,0,.3); display: grid; place-items: center; box-shadow: 0 20px 50px rgba(0,0,0,.4); animation: spin 20s linear infinite; }
+.record::after { content: ""; width: 28%; aspect-ratio: 1; border-radius: 50%; background: rgba(var(--accent-rgb), .3); border: 1px solid rgba(255,255,255,.4); }
+@keyframes spin { to { transform: rotate(360deg); } }
+html.reduce-motion .record { animation: none; }
+@media (prefers-reduced-motion: reduce) { .record { animation: none; } html { scroll-behavior: auto; } }
+.album-gradient-0 { background: linear-gradient(135deg,#052f45,#4a147e,#e83f9a); }
+.album-gradient-1 { background: linear-gradient(135deg,#422049,#18196c,#048b9a); }
+.album-gradient-2 { background: linear-gradient(135deg,#142332,#5c1f76,#bd5d28); }
+.album-gradient-3 { background: linear-gradient(135deg,#082a35,#235857,#50246c); }
+
+/* ===================== MARKETPLACE ===================== */
+.market-head { display: flex; flex-direction: column; gap: 24px; margin-bottom: 36px; }
+@media (min-width: 860px) { .market-head { flex-direction: row; justify-content: space-between; align-items: flex-end; } }
+.search { display: flex; align-items: center; gap: 10px; padding: 0 14px; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--field); min-width: 280px; }
+.search input { border: 0; background: transparent; outline: none; padding: 13px 0; width: 100%; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 24px; padding: 12px; transition: transform .2s, border-color .2s; }
+.card:hover { transform: translateY(-4px); border-color: rgba(var(--accent-rgb), .5); }
+.cover { aspect-ratio: 1; border-radius: 18px; overflow: hidden; position: relative; }
+.cover img, .cover-fallback { width: 100%; height: 100%; object-fit: cover; display: grid; place-items: center; color: #fff; }
+.type-badge { position: absolute; top: 12px; left: 12px; padding: 4px 12px; border-radius: 99px; background: rgba(0,0,0,.7); color: #fff; font-size: 10px; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
+.play-fab { position: absolute; right: 12px; bottom: 12px; width: 46px; height: 46px; border-radius: 99px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font-size: 16px; box-shadow: 0 10px 25px rgba(0,0,0,.35); transition: transform .15s; }
+.card:hover .play-fab { transform: scale(1.08); }
+.card-body { padding: 16px 8px 8px; }
+.card-title { font-size: 18px; font-weight: 800; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.price { font-size: 20px; }
+.empty { grid-column: 1 / -1; padding: 48px 0; color: var(--muted); }
+
+/* ===================== HOW / LYRICS ===================== */
+.step { padding: 32px; }
+.step h3 { font-size: 24px; font-weight: 900; margin: 12px 0 8px; }
+.step-icon { color: var(--accent-text); margin-bottom: 20px; }
+.tool-title { font-size: 20px; font-weight: 900; }
+.notepad { font-family: var(--mono); font-size: var(--note-size); line-height: 1.7; min-height: 320px; }
+.vault { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+.song-list { max-height: 260px; overflow-y: auto; margin-top: 8px; font-size: 14px; color: var(--muted); }
+.song-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; margin-bottom: 8px; border: 1px solid var(--line); border-radius: 12px; }
+.song-row.is-current { border-color: rgba(var(--accent-rgb), .6); background: rgba(var(--accent-rgb), .07); }
+.song-name { font-weight: 700; color: var(--text); }
+.tr-langs { display: flex; align-items: flex-end; gap: 8px; }
+.tr-langs .label { flex: 1; }
+.tr-output { min-height: 150px; white-space: pre-wrap; margin-top: 16px; font-size: 14px; }
+.cta { background: linear-gradient(90deg, rgba(var(--accent-rgb), .18), var(--bg-alt), rgba(239,68,68,.18)); }
+.footer { max-width: var(--maxw); margin: 0 auto; padding: 48px 24px; color: var(--dim); font-size: 14px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; }
+
+/* ===================== MODALS ===================== */
+.overlay { position: fixed; inset: 0; z-index: 100; background: var(--overlay); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.modal { width: 100%; max-width: 440px; max-height: 92vh; overflow-y: auto; padding: 32px 28px; position: relative; border-color: rgba(var(--accent-rgb), .35); }
+.modal-wide { max-width: 600px; }
+.modal-close { position: absolute; top: 16px; right: 16px; }
+.modal-title { font-size: 28px; font-weight: 900; }
+.divider { display: flex; align-items: center; gap: 14px; margin: 20px 0; color: var(--dim); font-family: var(--mono); font-size: 11px; }
+.divider::before, .divider::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
+.auth-switch { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); text-align: center; font-size: 13px; color: var(--muted); }
+.set-group { margin-top: 24px; }
+.set-group > .eyebrow { margin-bottom: 4px; }
+.setting-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.set-name { font-weight: 700; }
+.segmented { display: inline-flex; padding: 4px; gap: 4px; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--soft); }
+.segmented button { padding: 7px 14px; border-radius: 9px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.segmented button:hover { color: var(--text); }
+.segmented button.active { background: var(--accent); color: var(--on-accent); }
+.swatch { width: 30px; height: 30px; border-radius: 99px; background: var(--sw); border: 2px solid var(--panel-solid); box-shadow: 0 0 0 1px var(--line-strong); }
+.swatch.active { box-shadow: 0 0 0 2px var(--text); }
+
+/* ===================== TOAST & PLAYER ===================== */
+.toast { position: fixed; right: 20px; bottom: 100px; z-index: 200; max-width: min(380px, calc(100vw - 40px)); padding: 14px 16px; border-radius: 14px; background: var(--panel-solid); color: var(--text); border: 1px solid var(--line); border-left: 4px solid var(--accent); box-shadow: var(--shadow); font-size: 14px; }
+.toast.error { border-left-color: var(--danger); }
+.player { position: fixed; bottom: 0; inset-inline: 0; z-index: 40; background: var(--panel); border-top: 1px solid var(--line); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); padding: 12px 20px; }
+.player-inner { max-width: var(--maxw); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.player-art { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; color: #fff; flex-shrink: 0; }
+.play-btn { width: 46px; height: 46px; border-radius: 99px; background: var(--accent); color: var(--on-accent); font-size: 16px; display: grid; place-items: center; }
+.play-btn:hover { background: var(--accent-hover); }
+.vol { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+@media (max-width: 560px) { .vol { display: none; } }
+</style>
+</head>
+
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+<div id="file-notice" class="notice hidden">You opened this page as a local file. Google sign-in, password reset and the encrypted vault need it served over http(s). Use VS Code Live Server or your hosting.</div>
+
+<!-- ===================== HEADER ===================== -->
+<header class="site-header">
+  <div class="header-inner">
+    <a href="#home" class="brand" aria-label="SYNTS home">
+      <span class="logo" aria-hidden="true">S</span>
+      <span class="brand-name">SYNTS <span class="gradient-text">EVERINK</span></span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="#marketplace">LYRICS DIRECTORY</a>
+      <a href="#lyrics">WRITE &amp; TRANSLATE</a>
+      <a href="#how">LICENSING</a>
+    </nav>
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" data-action="toggle-theme" aria-label="Switch to light mode">☀</button>
+      <button class="icon-btn" type="button" data-action="open-settings" aria-label="Settings"><i data-lucide="settings" class="ic">⚙</i></button>
+      <div id="nav-auth" class="row"></div>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== AUTH MODAL ===================== -->
+<div id="auth-modal" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+  <div class="modal panel">
+    <button class="icon-btn modal-close" type="button" data-action="close-modal" aria-label="Close"><i data-lucide="x" class="ic">✕</i></button>
+    <div class="center mb">
+      <h3 id="auth-title" class="modal-title">SIGN IN</h3>
+      <p id="auth-sub" class="eyebrow mt-s">ACCESS YOUR SYNTS CREATOR ACCOUNT</p>
+    </div>
+    <div id="auth-social">
+      <button type="button" class="btn btn-google w-full" data-action="google-signin">
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+          <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45-1.16-4.05-1.16-3.13 0-5.78-2.11-6.73-4.96H1.18v3.15C3.15 21.32 7.22 24 12 24z"/>
+          <path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.6H1.18C.43 8.12 0 9.82 0 12s.43 3.88 1.18 5.4l4.09-3.16z"/>
+          <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.22 0 3.15 2.68 1.18 6.6l4.09 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/>
+        </svg>
+        Continue with Google
+      </button>
+      <div class="divider">OR WITH EMAIL</div>
+    </div>
+    <form id="auth-form" class="stack" novalidate>
+      <label class="label" id="f-username">USERNAME
+        <input class="input" id="auth-username" autocomplete="nickname" maxlength="40" placeholder="SyntsCreator">
+      </label>
+      <label class="label" id="f-email">EMAIL ADDRESS
+        <input class="input" type="email" id="auth-email" autocomplete="email" placeholder="you@example.com">
+      </label>
+      <label class="label" id="f-password">PASSWORD
+        <input class="input" type="password" id="auth-password" autocomplete="current-password" placeholder="••••••••">
+      </label>
+      <button type="submit" id="auth-submit" class="btn btn-primary btn-lg w-full">LOG IN</button>
+    </form>
+    <p id="auth-msg" class="form-msg hidden" role="alert"></p>
+    <div class="mt-s"><button type="button" id="forgot-link" class="link" data-action="auth-mode" data-mode="reset">Forgot password?</button></div>
+    <div class="auth-switch">
+      <span id="auth-switch-text">Don't have an account?</span>
+      <button type="button" class="link" id="auth-switch-btn" data-action="auth-switch">Create account</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SETTINGS MODAL ===================== -->
+<div id="settings-modal" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+  <div class="modal modal-wide panel">
+    <button class="icon-btn modal-close" type="button" data-action="close-modal" aria-label="Close"><i data-lucide="x" class="ic">✕</i></button>
+    <h3 id="settings-title" class="modal-title">SETTINGS</h3>
+
+    <div class="set-group">
+      <h4 class="eyebrow">Appearance</h4>
+      <div class="setting-row">
+        <div><div class="set-name">Theme</div><div class="dim small">Follow your device, or always use dark or light.</div></div>
+        <div class="segmented" role="group" aria-label="Theme">
+          <button type="button" data-action="set" data-key="theme" data-value="system">System</button>
+          <button type="button" data-action="set" data-key="theme" data-value="dark">Dark</button>
+          <button type="button" data-action="set" data-key="theme" data-value="light">Light</button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="set-name">Accent colour</div>
+        <div class="row" role="group" aria-label="Accent colour">
+          <button type="button" class="swatch" style="--sw:#4ade80" data-action="set" data-key="accent" data-value="green" aria-label="Green"></button>
+          <button type="button" class="swatch" style="--sw:#a78bfa" data-action="set" data-key="accent" data-value="purple" aria-label="Purple"></button>
+          <button type="button" class="swatch" style="--sw:#fb7185" data-action="set" data-key="accent" data-value="rose" aria-label="Rose"></button>
+          <button type="button" class="swatch" style="--sw:#facc15" data-action="set" data-key="accent" data-value="gold" aria-label="Gold"></button>
+          <button type="button" class="swatch" style="--sw:#38bdf8" data-action="set" data-key="accent" data-value="blue" aria-label="Blue"></button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="set-name">Notepad text size</div>
+        <div class="segmented" role="group" aria-label="Notepad text size">
+          <button type="button" data-action="set" data-key="fontSize" data-value="s">Small</button>
+          <button type="button" data-action="set" data-key="fontSize" data-value="m">Medium</button>
+          <button type="button" data-action="set" data-key="fontSize" data-value="l">Large</button>
+        </div>
+      </div>
+      <label class="setting-row" for="set-motion">
+        <div><div class="set-name">Reduce motion</div><div class="dim small">Stops the spinning record and smooth scrolling.</div></div>
+        <input type="checkbox" id="set-motion" data-setting="reduceMotion">
+      </label>
+    </div>
+
+    <div class="set-group">
+      <h4 class="eyebrow">Lyrics &amp; translation</h4>
+      <label class="setting-row" for="set-autosave">
+        <div><div class="set-name">Auto-save draft in this browser</div><div class="dim small">Turn off on shared computers.</div></div>
+        <input type="checkbox" id="set-autosave" data-setting="autosave">
+      </label>
+      <div class="setting-row">
+        <div class="set-name">Default translation</div>
+        <div class="row">
+          <select id="set-tr-from" class="input" style="margin:0;width:auto" data-setting="trFrom" aria-label="Default source language"></select>
+          <span class="dim">→</span>
+          <select id="set-tr-to" class="input" style="margin:0;width:auto" data-setting="trTo" aria-label="Default target language"></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="set-group">
+      <h4 class="eyebrow">Account</h4>
+      <div id="set-account"></div>
+    </div>
+
+    <div class="set-group">
+      <h4 class="eyebrow">Data</h4>
+      <div class="setting-row">
+        <div><div class="set-name">Clear data saved in this browser</div><div class="dim small">Removes your local draft and settings. Songs in your vault are not affected.</div></div>
+        <button type="button" class="btn btn-danger btn-sm" data-action="clear-local">CLEAR</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main id="main">
+<!-- ===================== HERO ===================== -->
+<section id="home" class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="pill"><span class="dot"></span> FOR CREATORS &amp; SONGWRITERS</span>
+      <h1>SHOW YOUR CREATIVITY.<br><span class="gradient-text">MAKE YOUR ART REACH MILLIONS.</span></h1>
+      <p class="lead" style="max-width:36rem">Write original song lyrics, translate across languages with voice playback, and sell lyric licenses with transparent pricing in one systematic creator directory.</p>
+      <div class="row mt" style="margin-top:36px;gap:12px">
+        <a href="#marketplace" class="btn btn-primary btn-lg">EXPLORE PROJECTS</a>
+        <a href="#lyrics" class="btn btn-ghost btn-lg">WRITE &amp; SELL LYRICS <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="hero-perks">
+        <span>✦ Systematic Creator Directory</span>
+        <span>✦ Sell Lyric Licenses</span>
+        <span>✦ Multi-Language Voice Studio</span>
+      </div>
+    </div>
+    <div class="hero-art">
+      <div class="panel">
+        <div class="art album-gradient-0"><div class="record"></div><span class="art-text">OWN YOUR<br>WORDS.</span></div>
+        <div class="row between" style="padding:16px 8px 4px">
+          <div>
+            <div class="eyebrow" style="letter-spacing:.1em">Creator Directory</div>
+            <div style="font-size:20px;font-weight:900">Licensed Lyrics &amp; Projects</div>
+            <p class="muted small">Preview &amp; license original songwriting</p>
+          </div>
+          <i data-lucide="audio-lines" class="ic ic-l accent-text" aria-hidden="true"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SYSTEMATIC DIRECTORY (MARKETPLACE) ===================== -->
+<section id="marketplace" class="section">
+  <div class="wrap">
+    <div class="market-head">
+      <div>
+        <span class="eyebrow">// Systematic Creator Directory</span>
+        <h2 class="h2">PROJECTS &amp; <span class="gradient-text">LYRIC LICENSES.</span></h2>
+        <p class="lead">Browse ready-to-license song lyrics, hooks, and full songwriting projects with set prices.</p>
+      </div>
+      <label class="search"><span class="dim" aria-hidden="true">⌕</span><input id="search-input" type="search" placeholder="Search lyrics, projects, or writers..." aria-label="Search lyrics, projects, or writers"></label>
+    </div>
+    <div class="row mb" style="gap:12px;margin-bottom:32px" role="group" aria-label="Filter projects">
+      <button type="button" class="chip active" data-action="filter" data-filter="all">All Projects</button>
+      <button type="button" class="chip" data-action="filter" data-filter="track">Song Lyrics</button>
+      <button type="button" class="chip" data-action="filter" data-filter="ep">Full Packs / EPs</button>
+      <button type="button" class="chip" data-action="filter" data-filter="playlist">Hooks &amp; Concepts</button>
+    </div>
+    <div id="release-grid" class="grid-4" aria-live="polite"></div>
+    <p class="dim small mt">Featured lyric projects and audio demos are shown in the directory. Licensing checkout stays protected until verified.</p>
+  </div>
+</section>
+
+<!-- ===================== HOW IT WORKS ===================== -->
+<section id="how" class="section section-alt">
+  <div class="wrap">
+    <div class="center" style="margin-bottom:48px">
+      <span class="eyebrow">// Simple by design</span>
+      <h2 class="h2">LICENSING THAT <span class="gradient-text">PAYS WRITERS.</span></h2>
+    </div>
+    <div class="grid-3">
+      <div class="panel step"><i data-lucide="notebook-pen" class="ic ic-l step-icon"></i><div class="dim mono">01 / CREATE &amp; TRANSLATE</div><h3>Write &amp; hear in any language</h3><p class="muted">Draft your lyrics in the encrypted vault, translate them, and listen back with the built-in voice module.</p></div>
+      <div class="panel step"><i data-lucide="wallet" class="ic ic-l step-icon" style="color:#ef4444"></i><div class="dim mono">02 / SET YOUR LICENSE PRICE</div><h3>Price your lyric rights</h3><p class="muted">List your original lyrics and songwriting projects in the directory with transparent licensing prices.</p></div>
+      <div class="panel step"><i data-lucide="award" class="ic ic-l step-icon"></i><div class="dim mono">03 / REACH MILLIONS</div><h3>License to global artists</h3><p class="muted">Singers, producers, and creators unlock your licensed lyrics to record and release worldwide.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== LYRICS LAB & VOICE TRANSLATOR ===================== -->
+<section id="lyrics" class="section">
+  <div class="wrap">
+    <div style="margin-bottom:40px">
+      <span class="eyebrow">// Lyrics Lab &amp; Voice Studio</span>
+      <h2 class="h2">WRITE IT. <span class="gradient-text">TRANSLATE &amp; LISTEN.</span></h2>
+      <p class="lead">Draft your lyrics, keep them in your private encrypted vault, translate them, and listen in different languages.</p>
+    </div>
+    <div class="grid-2" style="align-items:start">
+
+      <!-- Notepad + vault -->
+      <div class="panel pad">
+        <div class="row between mb">
+          <div class="row" style="gap:10px"><i data-lucide="notebook-pen" class="ic accent-text"></i><h3 class="tool-title">NOTEPAD</h3></div>
+          <span id="lyrics-saved" class="mono small dim">Not saved yet</span>
+        </div>
+        <input id="lyrics-title" class="input" maxlength="120" dir="auto" placeholder="Song / Lyric Project Title" aria-label="Song title" style="margin-top:0">
+        <textarea id="lyrics-text" class="input notepad" rows="14" dir="auto" aria-label="Lyrics" placeholder="[Verse 1]&#10;Write your lyrics here..."></textarea>
+        <div class="row between mt">
+          <span id="lyrics-stats" class="mono small muted">0 lines · 0 words · 0 chars</span>
+          <div class="row">
+            <button type="button" class="btn btn-soft btn-sm" data-action="copy-lyrics">COPY</button>
+            <button type="button" class="btn btn-soft btn-sm" data-action="download-lyrics">DOWNLOAD .TXT</button>
+            <button type="button" class="btn btn-danger btn-sm" data-action="clear-lyrics">CLEAR</button>
+          </div>
+        </div>
+
+        <div class="vault">
+          <div class="row between mb" style="margin-bottom:12px">
+            <div class="row" style="gap:8px"><i data-lucide="shield-check" class="ic ic-s accent-text"></i><h4 style="font-size:14px;font-weight:800">ENCRYPTED CLOUD VAULT</h4></div>
+            <span id="vault-status" class="mono small muted"></span>
+          </div>
+          <div id="vault-signedout" class="muted" style="font-size:14px">
+            Sign in to save your lyrics privately, end-to-end encrypted.
+            <button type="button" class="link" data-action="open-auth" data-mode="signin">Sign in</button>
+          </div>
+          <form id="vault-locked" class="stack hidden" novalidate>
+            <p id="vault-locked-msg" class="muted small" style="line-height:1.6"></p>
+            <input id="vault-pass" class="input" type="password" autocomplete="current-password" placeholder="Lyrics passphrase" aria-label="Lyrics passphrase">
+            <input id="vault-pass2" class="input hidden" type="password" autocomplete="new-password" placeholder="Confirm passphrase" aria-label="Confirm passphrase">
+            <button id="vault-unlock-btn" type="submit" class="btn btn-primary w-full">UNLOCK</button>
+          </form>
+          <div id="vault-open" class="hidden">
+            <div class="row">
+              <button type="button" id="vault-save-btn" class="btn btn-primary btn-sm" data-action="vault-save">SAVE TO CLOUD</button>
+              <button type="button" class="btn btn-soft btn-sm" data-action="vault-new">NEW SONG</button>
+              <button type="button" class="btn btn-soft btn-sm" data-action="vault-lock">LOCK</button>
+            </div>
+            <div class="mono tiny dim mt">MY SONGS · Ctrl+S saves</div>
+            <div id="vault-songs" class="song-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Translator + Voice Module -->
+      <div class="panel pad">
+        <div class="row mb" style="gap:10px"><i data-lucide="languages" class="ic" style="color:#ef4444"></i><h3 class="tool-title">TRANSLATOR &amp; VOICE</h3></div>
+        <div class="tr-langs">
+          <label class="label">FROM<select id="tr-from" class="input"></select></label>
+          <button type="button" class="icon-btn" data-action="tr-swap" aria-label="Swap languages" style="margin-bottom:4px"><i data-lucide="arrow-left-right" class="ic ic-s">⇄</i></button>
+          <label class="label">TO<select id="tr-to" class="input"></select></label>
+        </div>
+        <textarea id="tr-input" class="input mt" rows="6" dir="auto" aria-label="Text to translate" placeholder="Type or paste lyrics to translate..."></textarea>
+        <div class="row between mt-s"><span id="tr-count" class="mono tiny dim">0 / 5000</span></div>
+        <div class="row mt-s">
+          <button type="button" class="btn btn-soft btn-sm" data-action="tr-use-notepad">USE NOTEPAD TEXT</button>
+          <button type="button" id="tr-btn" class="btn btn-primary btn-sm" data-action="translate">TRANSLATE</button>
+        </div>
+        <div id="tr-output" class="input tr-output" dir="auto" aria-live="polite"><span class="dim">Translation will appear here.</span></div>
+        <div class="row between mt-s">
+          <span id="tr-meta" class="mono tiny dim"></span>
+          <div class="row">
+            <button type="button" class="btn btn-primary btn-sm" data-action="tr-speak">🔊 LISTEN</button>
+            <button type="button" class="btn btn-soft btn-sm" data-action="tr-stop">⏹ STOP</button>
+            <button type="button" class="btn btn-soft btn-sm" data-action="tr-copy">COPY</button>
+            <button type="button" class="btn btn-soft btn-sm" data-action="tr-to-notepad">ADD TO NOTEPAD</button>
+          </div>
+        </div>
+        <p class="dim tiny mt" style="line-height:1.6">Machine translation by Google Translate, with MyMemory as a backup. Select any target language and press 🔊 LISTEN to hear the translation spoken aloud.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CALL TO ACTION ===================== -->
+<section class="section cta">
+  <div class="wrap center" style="max-width:52rem">
+    <h2 class="h2" style="font-size:clamp(2.2rem,6vw,3.8rem)">YOUR CREATIVITY DESERVES <span class="gradient-text">MILLIONS.</span></h2>
+    <p class="lead mb" style="margin-bottom:32px">Join SYNTS Everink as a songwriter or creator and license your art worldwide.</p>
+    <button type="button" class="btn btn-primary btn-lg" data-action="open-auth" data-mode="signup">JOIN AS A CREATOR</button>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <span>© <span id="year"></span> Show your creativity.<br />
+  Make your art reach millions.</span>
+  <span>Creator Directory · Songwriting &amp; Lyric Licensing</span>
+</footer>
+
+<!-- ===================== PLAYER ===================== -->
+<div class="player" role="region" aria-label="Audio player">
+  <div class="player-inner">
+    <div class="row" style="gap:12px;flex-wrap:nowrap;min-width:0">
+      <div class="player-art album-gradient-1"><i data-lucide="music" class="ic"></i></div>
+      <div style="min-width:0">
+        <div id="player-title" class="truncate" style="font-weight:800;font-size:14px">Choose a project demo</div>
+        <div id="player-artist" class="muted small truncate">SYNTS DIRECTORY</div>
+        <div id="player-state" class="tiny accent-text mono">PROJECT PREVIEW</div>
+      </div>
+    </div>
+    <div class="row" style="gap:16px;flex-wrap:nowrap">
+      <button type="button" id="play-btn" class="play-btn" data-action="toggle-play" aria-label="Play">▶</button>
+      <label class="vol">VOL <input type="range" id="volume" min="0" max="1" step="0.05" value="0.8" style="width:96px"></label>
+    </div>
+  </div>
+</div>
+<audio id="audio-player" preload="none"></audio>
+
+<script>
+(() => {
+"use strict";
+
+/* =====================================================================
+   CONFIG: publishable client keys are safe in browsers.
+   ===================================================================== */
+const CONFIG = {
+  supabaseUrl: "https://zvcmbjnsvkoqoycsopkm.supabase.co",
+  supabasePublishableKey: "sb_publishable_EfalUd595D0IUkfQNQ-blw_P62Kpwca",
+  publicTracks: { "Musafir (Urdu Drill)": "", "Mukhtalif (Lo-Fi Session)": "" },
+  uploadBucket: "file_upload",
+  previewSeconds: 30,
+  maxTranslateChars: 5000
+};
+
+const KEYS = { settings: "synts_settings", draft: "synts_lyrics_draft" };
+const LANGS = {
+  en: "English",
+  hi: "Hindi (हिन्दी)",
+  kn: "Kannada (ಕನ್ನಡ)",
+  ta: "Tamil (தமிழ்)",
+  te: "Telugu (తెలుగు)",
+  mr: "Marathi (मराठी)",
+  pa: "Punjabi (ਪੰਜਾਬੀ)",
+  ur: "Urdu (اردو)",
+  bn: "Bengali (বাংলা)",
+  gu: "Gujarati (ગુજરાતી)",
+  ml: "Malayalam (മലയാളം)",
+  ar: "Arabic (العربية)",
+  fa: "Persian (فارسی)",
+  es: "Spanish (Español)",
+  fr: "French (Français)",
+  de: "German (Deutsch)",
+  pt: "Portuguese (Português)",
+  it: "Italian (Italiano)",
+  tr: "Turkish (Türkçe)",
+  ru: "Russian (Русский)",
+  ja: "Japanese (日本語)",
+  ko: "Korean (한국어)",
+  "zh-CN": "Chinese (中文)"
+};
+const DEFAULT_SETTINGS = { theme: "system", accent: "green", fontSize: "m", reduceMotion: false, autosave: true, trFrom: "auto", trTo: "hi" };
+
+/* ===================== HELPERS ===================== */
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } },
+  del(k) { try { localStorage.removeItem(k); } catch {} }
+};
+function h(tag, attrs = {}, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k === "text") el.textContent = v;
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid.nodeType ? kid : String(kid));
+  return el;
+}
+const icons = () => { try { window.lucide?.createIcons(); } catch {} };
+const formatMoney = n => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(Number(n) || 0);
+const isHttpUrl = u => typeof u === "string" && /^https?:\/\//i.test(u);
+const isWebPage = () => /^https?:$/.test(location.protocol);
+const pageUrl = () => location.origin + location.pathname;
+const emailOk = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+
+let toastTimer;
+function toast(message, isError = false) {
+  const t = $("toast");
+  if (!t) return;
+  t.textContent = message;
+  t.classList.toggle("error", isError);
+  t.classList.remove("hidden");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.add("hidden"), isError ? 7000 : 4500);
+}
+async function copyText(text, label) {
+  if (!text || !text.trim()) return toast("Nothing to copy yet.", true);
+  try { await navigator.clipboard.writeText(text); toast(label + " copied."); }
+  catch { toast("Copy failed. Select the text and press Ctrl+C.", true); }
+}
+
+/* ===================== STATE ===================== */
+let settings = { ...DEFAULT_SETTINGS, ...store.get(KEYS.settings, {}) };
+const state = {
+  user: null, lastUid: undefined, authMode: "signin",
+  releases: [], filter: "all", search: "", previewing: null,
+  translating: false, lastTranslation: "", lastDetected: null,
+  vault: { key: null, uid: null, record: null, checkedFor: null, checking: false, busy: false },
+  songId: null, songs: [], cloudDirty: false, draftTimer: null
+};
+
+const sb = (window.supabase && typeof window.supabase.createClient === "function")
+  ? window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabasePublishableKey)
+  : null;
+function requireSb() {
+  if (sb) return true;
+  toast("Could not load the Supabase library. Check your internet connection or ad-blocker, then refresh.", true);
+  return false;
+}
+
+/* ===================== SETTINGS & THEME ===================== */
+const lightQuery = window.matchMedia("(prefers-color-scheme: light)");
+const resolvedTheme = () => settings.theme === "system" ? (lightQuery.matches ? "light" : "dark") : settings.theme;
+
+function applySettings() {
+  const root = document.documentElement, theme = resolvedTheme();
+  root.dataset.theme = theme;
+  root.dataset.accent = settings.accent;
+  root.dataset.font = settings.fontSize;
+  root.classList.toggle("reduce-motion", !!settings.reduceMotion);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme === "light" ? "#f5f6f8" : "#0a0a0c");
+  const tbtn = $("theme-toggle");
+  if (tbtn) {
+    tbtn.textContent = theme === "dark" ? "☀" : "☾";
+    tbtn.setAttribute("aria-label", theme === "dark" ? "Switch to light mode" : "Switch to dark mode");
+    tbtn.title = tbtn.getAttribute("aria-label");
+  }
+  syncSettingsUI();
+}
+function saveSettings(patch) {
+  settings = { ...settings, ...patch };
+  store.set(KEYS.settings, settings);
+  applySettings();
+}
+function syncSettingsUI() {
+  document.querySelectorAll('#settings-modal [data-action="set"]').forEach(b => {
+    const on = String(settings[b.dataset.key]) === b.dataset.value;
+    b.classList.toggle("active", on);
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+  if ($("set-motion")) $("set-motion").checked = !!settings.reduceMotion;
+  if ($("set-autosave")) $("set-autosave").checked = !!settings.autosave;
+  if ($("set-tr-from")) $("set-tr-from").value = settings.trFrom;
+  if ($("set-tr-to")) $("set-tr-to").value = settings.trTo;
+}
+lightQuery.addEventListener?.("change", () => { if (settings.theme === "system") applySettings(); });
+
+function renderSettingsAccount() {
+  const box = $("set-account");
+  if (!box) return;
+  box.replaceChildren();
+  if (!state.user) {
+    box.append(h("div", { class: "setting-row" },
+      h("div", { class: "muted", text: "You are not signed in." }),
+      h("button", { type: "button", class: "btn btn-primary btn-sm", "data-action": "open-auth", "data-mode": "signin" }, "SIGN IN")));
+    return;
+  }
+  const u = state.user;
+  box.append(
+    h("div", { class: "setting-row" },
+      h("div", {}, h("div", { class: "set-name", text: displayName(u) }), h("div", { class: "dim small", text: u.email || "" })),
+      h("button", { type: "button", class: "btn btn-ghost btn-sm", "data-action": "logout" }, "LOG OUT")),
+    h("div", { class: "setting-row" },
+      h("div", {}, h("div", { class: "set-name", text: "Password" }), h("div", { class: "dim small", text: "We'll email you a secure link to set a new password." })),
+      h("button", { type: "button", class: "btn btn-soft btn-sm", "data-action": "send-reset" }, "SEND RESET LINK")),
+    h("div", { class: "setting-row" },
+      h("div", {}, h("div", { class: "set-name", text: "Lyrics vault" }), h("div", { class: "dim small", text: state.vault.key ? "Unlocked on this device." : "Locked." })),
+      state.vault.key ? h("button", { type: "button", class: "btn btn-soft btn-sm", "data-action": "vault-lock" }, "LOCK NOW") : null)
+  );
+}
+
+/* ===================== MODALS ===================== */
+let lastFocus = null;
+function openModal(id) {
+  const modal = $(id);
+  if (!modal) return;
+  lastFocus = document.activeElement;
+  modal.classList.remove("hidden");
+  document.body.classList.add("modal-open");
+  setTimeout(() => {
+    const target = [...modal.querySelectorAll("input, select, button:not(.modal-close)")]
+      .find(el => el.offsetParent !== null && !el.disabled);
+    target?.focus();
+  }, 30);
+}
+function closeModal(id) {
+  const modal = $(id);
+  if (!modal) return;
+  modal.classList.add("hidden");
+  if (!document.querySelector(".overlay:not(.hidden)")) document.body.classList.remove("modal-open");
+  if (id === "auth-modal") authMsg("");
+  lastFocus?.focus?.();
+}
+
+/* ===================== AUTH ===================== */
+const AUTH_TEXT = {
+  signin:   ["SIGN IN", "ACCESS YOUR SYNTS CREATOR ACCOUNT", "LOG IN"],
+  signup:   ["CREATE ACCOUNT", "JOIN SYNTS EVERINK", "CREATE ACCOUNT"],
+  reset:    ["RESET PASSWORD", "WE'LL EMAIL YOU A RESET LINK", "SEND RESET LINK"],
+  recovery: ["NEW PASSWORD", "CHOOSE A NEW PASSWORD", "UPDATE PASSWORD"]
+};
+function displayName(u) { return u?.user_metadata?.username || u?.user_metadata?.full_name || u?.email?.split("@")[0] || "Creator"; }
+
+function authMsg(text, isError = true) {
+  const el = $("auth-msg");
+  if (!el) return;
+  el.textContent = text;
+  el.classList.toggle("hidden", !text);
+  el.classList.toggle("error", !!text && isError);
+  el.classList.toggle("success", !!text && !isError);
+}
+function setAuthMode(mode) {
+  state.authMode = mode;
+  const [title, sub, submit] = AUTH_TEXT[mode];
+  $("auth-title").textContent = title;
+  $("auth-sub").textContent = sub;
+  $("auth-submit").textContent = submit;
+  $("f-username").classList.toggle("hidden", mode !== "signup");
+  $("f-email").classList.toggle("hidden", mode === "recovery");
+  $("f-password").classList.toggle("hidden", mode === "reset");
+  $("auth-social").classList.toggle("hidden", mode === "reset" || mode === "recovery");
+  $("forgot-link").classList.toggle("hidden", mode !== "signin");
+  $("auth-password").autocomplete = mode === "signin" ? "current-password" : "new-password";
+  const sw = $("auth-switch-btn").parentElement;
+  sw.classList.toggle("hidden", mode === "recovery");
+  $("auth-switch-text").textContent = mode === "signup" ? "Already have an account?" : mode === "reset" ? "Remembered it?" : "Don't have an account?";
+  $("auth-switch-btn").textContent = mode === "signin" ? "Create account" : "Sign in";
+  authMsg("");
+}
+function openAuth(mode = "signin") { setAuthMode(mode); openModal("auth-modal"); }
+
+function friendlyAuthError(err) {
+  const m = String(err?.message || err || "");
+  if (/invalid login credentials/i.test(m)) return "Wrong email or password.";
+  if (/email not confirmed/i.test(m)) return "Please confirm your email first. Check your inbox and spam folder for the link.";
+  if (/provider is not enabled|unsupported provider/i.test(m)) return "Google sign-in is not switched on yet in Supabase.";
+  if (/already registered|already exists/i.test(m)) return "An account with this email already exists. Sign in instead.";
+  if (/rate limit|too many/i.test(m)) return "Too many attempts. Please wait a minute and try again.";
+  if (/failed to fetch|network/i.test(m)) return "Can't reach the server. Check your internet connection and try again.";
+  return m || "Something went wrong. Please try again.";
+}
+
+async function onAuthSubmit(e) {
+  e.preventDefault();
+  authMsg("");
+  if (!requireSb()) return;
+  const mode = state.authMode;
+  const email = $("auth-email").value.trim();
+  const password = $("auth-password").value;
+  const username = $("auth-username").value.trim();
+
+  if (mode !== "recovery" && !emailOk(email)) return authMsg("Enter a valid email address.");
+  if ((mode === "signin") && !password) return authMsg("Enter your password.");
+  if ((mode === "signup" || mode === "recovery") && password.length < 6) return authMsg("Password must be at least 6 characters.");
+
+  const btn = $("auth-submit");
+  btn.disabled = true; btn.textContent = "PLEASE WAIT...";
+  try {
+    if (mode === "signin") {
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      setUser(data.user);
+      closeModal("auth-modal");
+      $("auth-password").value = "";
+      toast("Signed in. Welcome back, " + displayName(data.user) + "!");
+    } else if (mode === "signup") {
+      const { data, error } = await sb.auth.signUp({
+        email, password,
+        options: { data: { username: username || email.split("@")[0] }, emailRedirectTo: isWebPage() ? pageUrl() : undefined }
+      });
+      if (error) throw error;
+      if (data.session) {
+        setUser(data.user); closeModal("auth-modal"); toast("Account created. You're signed in!");
+      } else if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+        throw new Error("already registered");
+      } else {
+        setAuthMode("signin");
+        $("auth-email").value = email;
+        authMsg("Account created! Open the confirmation link we emailed you, then sign in here.", false);
+      }
+    } else if (mode === "reset") {
+      if (!isWebPage()) throw new Error("Password reset only works when the site is opened over http(s).");
+      const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: pageUrl() });
+      if (error) throw error;
+      authMsg("If an account exists for " + email + ", a reset link is on its way.", false);
+    } else if (mode === "recovery") {
+      const { error } = await sb.auth.updateUser({ password });
+      if (error) throw error;
+      closeModal("auth-modal");
+      $("auth-password").value = "";
+      toast("Password updated.");
+    }
+  } catch (err) {
+    authMsg(friendlyAuthError(err));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = AUTH_TEXT[state.authMode][2];
+  }
+}
+
+async function signInWithGoogle() {
+  authMsg("");
+  if (!requireSb()) return;
+  if (!isWebPage()) return authMsg("Google sign-in only works when the site is opened over http(s).");
+  const { error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: pageUrl() } });
+  if (error) authMsg(friendlyAuthError(error));
+}
+
+async function sendResetEmail() {
+  if (!requireSb() || !state.user?.email) return;
+  if (!isWebPage()) return toast("Password reset only works over http(s).", true);
+  const { error } = await sb.auth.resetPasswordForEmail(state.user.email, { redirectTo: pageUrl() });
+  toast(error ? friendlyAuthError(error) : "Reset link sent to " + state.user.email + ".", !!error);
+}
+
+async function logout() {
+  if (state.vault.key && state.cloudDirty && state.songId && !confirm("You have unsaved changes in your vault song. Log out anyway?")) return;
+  if (sb) { const { error } = await sb.auth.signOut(); if (error) return toast(friendlyAuthError(error), true); }
+  audio.pause();
+  setUser(null);
+  closeModal("settings-modal");
+  toast("Signed out.");
+}
+
+function setUser(user) {
+  state.user = user || null;
+  state.lastUid = state.user?.id || null;
+  renderNavAuth();
+  renderSettingsAccount();
+  renderVault();
+}
+
+function renderNavAuth() {
+  const box = $("nav-auth");
+  if (!box) return;
+  box.replaceChildren();
+  if (!state.user) {
+    box.append(h("button", { type: "button", class: "btn btn-ghost btn-sm", "data-action": "open-auth", "data-mode": "signin" }, "SIGN IN"));
+    return;
+  }
+  const name = displayName(state.user);
+  box.append(h("button", { type: "button", class: "user-chip", "data-action": "open-settings", title: "Account & settings" },
+    h("span", { class: "avatar", "aria-hidden": "true", text: name.charAt(0).toUpperCase() }),
+    h("span", { class: "truncate", text: name })));
+}
+
+function initAuth() {
+  if (!sb) { setUser(null); return; }
+  sb.auth.onAuthStateChange((event, session) => {
+    setTimeout(() => {
+      setUser(session?.user || null);
+      if (event === "PASSWORD_RECOVERY") openAuth("recovery");
+    }, 0);
+  });
+  sb.auth.getSession()
+    .then(({ data }) => setUser(data.session?.user || null))
+    .catch(() => setUser(null));
+}
+
+/* ===================== SYSTEMATIC DIRECTORY (MARKETPLACE) ===================== */
+function fallbackReleases() {
+  return [
+    { id: "showcase-musafir", title: "Musafir (Urdu Drill Lyrics)", artist_name: "Synts", release_type: "track", genre: "Hip-Hop / Drill License", price_inr: 499, preview_url: CONFIG.publicTracks["Musafir (Urdu Drill)"] || "" },
+    { id: "showcase-mukhtalif", title: "Mukhtalif (Lo-Fi Verse & Hook)", artist_name: "Synts", release_type: "track", genre: "Lo-Fi / Bilingual Lyrics", price_inr: 399, preview_url: CONFIG.publicTracks["Mukhtalif (Lo-Fi Session)"] || "" },
+    { id: "showcase-ep", title: "After Hours (5-Song Lyric Pack)", artist_name: "Synts", release_type: "ep", genre: "Full Songwriting Pack", price_inr: 1499, preview_url: "" },
+    { id: "showcase-playlist", title: "Independent Frequencies (Hooks)", artist_name: "Synts", release_type: "playlist", genre: "Commercial Hooks & Concepts", price_inr: 799, preview_url: "" }
+  ];
+}
+async function loadReleases() {
+  state.releases = fallbackReleases();
+  renderReleases();
+  if (!sb) return;
+  try {
+    const { data, error } = await sb.from("releases")
+      .select("id,title,artist_name,release_type,genre,price_inr,preview_url,cover_url,description,creator_id")
+      .eq("status", "published").order("created_at", { ascending: false }).limit(100);
+    if (error) return;
+    if (data && data.length) { state.releases = data; renderReleases(); }
+  } catch {}
+}
+function releaseCard(r, i) {
+  const cover = isHttpUrl(r.cover_url)
+    ? h("img", { src: r.cover_url, alt: r.title + " cover", loading: "lazy" })
+    : h("div", { class: "cover-fallback album-gradient-" + (i % 4) }, h("i", { "data-lucide": "file-text", class: "ic ic-xl" }));
+  return h("article", { class: "card" },
+    h("div", { class: "cover" }, cover,
+      h("span", { class: "type-badge", text: r.release_type === "track" ? "LYRIC LICENSE" : r.release_type === "ep" ? "LYRIC PACK" : "HOOK / PROJECT" }),
+      h("button", { type: "button", class: "play-fab", "data-action": "preview", "data-id": String(r.id), "aria-label": "Preview " + r.title }, "▶")),
+    h("div", { class: "card-body" },
+      h("div", { class: "small accent-text", text: r.genre || "Original Lyrics" }),
+      h("h3", { class: "card-title", text: r.title, title: r.title }),
+      h("p", { class: "muted small truncate", text: "By " + (r.artist_name || "Synts") }),
+      h("div", { class: "row between mt" },
+        h("strong", { class: "price", text: formatMoney(r.price_inr) }),
+        h("button", { type: "button", class: "btn btn-soft btn-sm", "data-action": "buy", "data-id": String(r.id) }, "LICENSE"))));
+}
+function renderReleases() {
+  const grid = $("release-grid");
+  if (!grid) return;
+  const list = state.releases.filter(r =>
+    (state.filter === "all" || r.release_type === state.filter) &&
+    `${r.title} ${r.artist_name} ${r.genre}`.toLowerCase().includes(state.search));
+  grid.replaceChildren(...(list.length ? list.map(releaseCard) : [h("p", { class: "empty", text: "No matching lyric projects found." })]));
+  icons();
+}
+function findRelease(id) { return state.releases.find(r => String(r.id) === String(id)); }
+
+/* ===================== PLAYER ===================== */
+const audio = $("audio-player");
+audio.volume = 0.8;
+function syncPlayBtn() {
+  const playing = !!audio.getAttribute("src") && !audio.paused && !audio.ended;
+  $("play-btn").textContent = playing ? "❚❚" : "▶";
+  $("play-btn").setAttribute("aria-label", playing ? "Pause" : "Play");
+}
+async function previewRelease(id) {
+  const r = findRelease(id);
+  if (!r) return;
+  if (!isHttpUrl(r.preview_url)) return toast("No audio demo attached to this lyric project yet.", true);
+  state.previewing = r;
+  audio.pause();
+  audio.src = r.preview_url;
+  audio.currentTime = 0;
+  $("player-title").textContent = r.title;
+  $("player-artist").textContent = r.artist_name || "Synts";
+  $("player-state").textContent = CONFIG.previewSeconds + "-SECOND DEMO";
+  try { await audio.play(); } catch (err) { toast("Preview unavailable: " + err.message, true); }
+}
+async function togglePlay() {
+  if (!audio.getAttribute("src")) return toast("Press ▶ on a project card to hear its demo.");
+  try { audio.paused ? await audio.play() : audio.pause(); } catch (err) { toast(err.message, true); }
+}
+["play", "pause", "ended"].forEach(ev => audio.addEventListener(ev, syncPlayBtn));
+audio.addEventListener("timeupdate", () => {
+  if (state.previewing && audio.currentTime >= CONFIG.previewSeconds) {
+    audio.pause(); audio.currentTime = 0;
+    toast(CONFIG.previewSeconds + "-second demo complete.");
+  }
+});
+function buyRelease(id) {
+  const r = findRelease(id);
+  if (!r) return;
+  if (!state.user) { openAuth("signin"); toast("Sign in to license \"" + r.title + "\"."); return; }
+  toast("Licensing request for \"" + r.title + "\" (" + formatMoney(r.price_inr) + ") — checkout integration coming soon!");
+}
+
+/* ===================== ENCRYPTION (AES-256-GCM + PBKDF2) ===================== */
+const LyricCrypto = (() => {
+  const enc = new TextEncoder(), dec = new TextDecoder();
+  const ITERATIONS = 310000, VERIFY_TEXT = "synts-lyrics-vault-v1";
+  const toB64 = buf => { const b = new Uint8Array(buf); let s = ""; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(s); };
+  const fromB64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const rand = n => crypto.getRandomValues(new Uint8Array(n));
+  const supported = () => !!(window.isSecureContext && window.crypto && crypto.subtle);
+  async function deriveKey(pass, saltB64) {
+    const base = await crypto.subtle.importKey("raw", enc.encode(pass), "PBKDF2", false, ["deriveKey"]);
+    return crypto.subtle.deriveKey({ name: "PBKDF2", salt: fromB64(saltB64), iterations: ITERATIONS, hash: "SHA-256" },
+      base, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+  }
+  async function encrypt(key, text) {
+    const iv = rand(12);
+    const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, enc.encode(text));
+    return { ciphertext: toB64(ct), iv: toB64(iv) };
+  }
+  async function decrypt(key, ciphertext, iv) {
+    return dec.decode(await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromB64(iv) }, key, fromB64(ciphertext)));
+  }
+  async function createVault(pass) {
+    const salt = toB64(rand(16)), key = await deriveKey(pass, salt), check = await encrypt(key, VERIFY_TEXT);
+    return { key, record: { salt, verifier: check.ciphertext, verifier_iv: check.iv } };
+  }
+  async function openVault(pass, record) {
+    const key = await deriveKey(pass, record.salt);
+    let ok = false;
+    try { ok = (await decrypt(key, record.verifier, record.verifier_iv)) === VERIFY_TEXT; } catch {}
+    if (!ok) throw new Error("Wrong passphrase.");
+    return key;
+  }
+  return { supported, createVault, openVault, encrypt, decrypt };
+})();
+
+/* ===================== NOTEPAD ===================== */
+function updateStats() {
+  const t = $("lyrics-text").value;
+  const lines = t ? t.split("\n").length : 0, words = (t.trim().match(/\S+/g) || []).length;
+  $("lyrics-stats").textContent = `${lines} lines · ${words} words · ${t.length} chars`;
+}
+function saveDraft() {
+  if (!settings.autosave) { store.del(KEYS.draft); $("lyrics-saved").textContent = "Auto-save is off"; return; }
+  const ok = store.set(KEYS.draft, { title: $("lyrics-title").value, text: $("lyrics-text").value, songId: state.songId, ownerId: state.vault.uid });
+  $("lyrics-saved").textContent = ok ? "Draft saved " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Could not save in this browser";
+}
+function onNoteInput() {
+  updateStats();
+  state.cloudDirty = true;
+  updateVaultStatus();
+  if (settings.autosave) $("lyrics-saved").textContent = "Saving...";
+  clearTimeout(state.draftTimer);
+  state.draftTimer = setTimeout(saveDraft, 600);
+}
+function loadDraft() {
+  const d = settings.autosave ? store.get(KEYS.draft, null) : null;
+  if (d) { $("lyrics-title").value = d.title || ""; $("lyrics-text").value = d.text || ""; $("lyrics-saved").textContent = "Draft restored"; }
+  else if (!settings.autosave) $("lyrics-saved").textContent = "Auto-save is off";
+  updateStats();
+}
+function setNotepad(title, text) {
+  $("lyrics-title").value = title; $("lyrics-text").value = text;
+  updateStats(); saveDraft();
+}
+function downloadLyrics() {
+  const title = $("lyrics-title").value.trim(), text = $("lyrics-text").value;
+  if (!text.trim()) return toast("Write some lyrics first.", true);
+  const blob = new Blob([(title ? title + "\n\n" : "") + text], { type: "text/plain;charset=utf-8" });
+  const a = h("a", { href: URL.createObjectURL(blob), download: (title.replace(/[\\/:*?"<>|]+/g, "").trim() || "lyrics") + ".txt" });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function clearLyrics() {
+  if (!$("lyrics-text").value && !$("lyrics-title").value) return;
+  if (!confirm("Clear the notepad? Songs already saved in your vault are not deleted.")) return;
+  state.songId = null; state.cloudDirty = false;
+  setNotepad("", ""); renderSongList(); updateVaultStatus();
+}
+
+/* ===================== ENCRYPTED VAULT ===================== */
+const show = (id, on) => $(id)?.classList.toggle("hidden", !on);
+function updateVaultStatus() {
+  const s = $("vault-status"), v = state.vault;
+  if (!s) return;
+  if (!state.user) s.textContent = "";
+  else if (!v.key) s.textContent = "🔒 Locked";
+  else if (state.songId) s.textContent = state.cloudDirty ? "● Unsaved changes" : "✓ Saved & encrypted";
+  else s.textContent = $("lyrics-text").value.trim() ? "● New song, not saved" : "🔓 Unlocked";
+}
+async function renderVault() {
+  const v = state.vault;
+  if (!state.user) {
+    if (v.key || v.uid) lockVault(true);
+    v.record = null; v.checkedFor = null;
+    show("vault-signedout", true); show("vault-locked", false); show("vault-open", false);
+    updateVaultStatus(); return;
+  }
+  if (v.uid && v.uid !== state.user.id) lockVault(true);
+  show("vault-signedout", false);
+  if (v.key) { show("vault-locked", false); show("vault-open", true); updateVaultStatus(); return; }
+  show("vault-open", false); show("vault-locked", true); updateVaultStatus();
+
+  const uid = state.user.id;
+  if (v.checkedFor === uid) { if (!v.checking) applyLockedMode(); return; }
+  v.checkedFor = uid; v.checking = true;
+  $("vault-locked-msg").textContent = "Checking your vault...";
+  $("vault-unlock-btn").disabled = true;
+  try {
+    const { data, error } = await sb.from("lyric_vaults").select("salt,verifier,verifier_iv").eq("user_id", uid).maybeSingle();
+    if (state.user?.id !== uid) return;
+    if (error) throw error;
+    v.record = data;
+    applyLockedMode();
+  } catch (err) {
+    v.checkedFor = null;
+    $("vault-locked-msg").textContent = "Vault is not available yet: " + (err.message || err);
+  } finally {
+    v.checking = false;
+    $("vault-unlock-btn").disabled = false;
+  }
+}
+function applyLockedMode() {
+  const creating = !state.vault.record;
+  $("vault-locked-msg").textContent = creating
+    ? "Create a lyrics passphrase (8+ characters). Your lyrics are encrypted with it before upload, so nobody else can read them."
+    : "Enter your lyrics passphrase to unlock your saved songs.";
+  show("vault-pass2", creating);
+  $("vault-pass").autocomplete = creating ? "new-password" : "current-password";
+  $("vault-unlock-btn").textContent = creating ? "CREATE VAULT" : "UNLOCK";
+}
+async function unlockVault(e) {
+  e.preventDefault();
+  const v = state.vault;
+  if (v.busy || v.checking || !state.user || !requireSb()) return;
+  if (!LyricCrypto.supported()) return toast("Encryption needs https or localhost.", true);
+  const pass = $("vault-pass").value, uid = state.user.id, btn = $("vault-unlock-btn");
+  if (pass.length < 8) return toast("Passphrase must be at least 8 characters.", true);
+  if (!v.record && pass !== $("vault-pass2").value) return toast("The two passphrases don't match.", true);
+
+  v.busy = true; btn.disabled = true; btn.textContent = "WORKING...";
+  try {
+    if (!v.record) {
+      const { key, record } = await LyricCrypto.createVault(pass);
+      const { error } = await sb.from("lyric_vaults").insert(record);
+      if (error) throw error;
+      v.record = record; v.key = key;
+      toast("Vault created. Keep your passphrase safe!");
+    } else {
+      v.key = await LyricCrypto.openVault(pass, v.record);
+      toast("Vault unlocked.");
+    }
+    v.uid = uid;
+    const d = store.get(KEYS.draft, null);
+    if (d?.songId && d.ownerId === uid) { state.songId = d.songId; state.cloudDirty = true; }
+    $("vault-pass").value = ""; $("vault-pass2").value = "";
+    renderVault();
+    renderSettingsAccount();
+    await loadSongs();
+  } catch (err) {
+    toast(err.message || "Could not unlock the vault.", true);
+  } finally {
+    v.busy = false; btn.disabled = false;
+    if (!v.key) applyLockedMode();
+  }
+}
+function lockVault(silent = false) {
+  if (!silent && state.cloudDirty && state.songId && !confirm("You have unsaved changes. Lock anyway?")) return;
+  const hadSong = !!state.songId;
+  Object.assign(state.vault, { key: null, uid: null });
+  state.songs = []; state.songId = null; state.cloudDirty = false;
+  if (hadSong) {
+    $("lyrics-title").value = ""; $("lyrics-text").value = "";
+    store.del(KEYS.draft); updateStats();
+    $("lyrics-saved").textContent = "Notepad cleared for privacy";
+  }
+  $("vault-songs").replaceChildren();
+  if (!silent) { toast("Vault locked."); renderVault(); renderSettingsAccount(); }
+}
+async function saveSong() {
+  const v = state.vault;
+  if (!v.key || !state.user) return toast("Unlock your vault first.", true);
+  const title = $("lyrics-title").value.trim(), text = $("lyrics-text").value;
+  if (!title && !text.trim()) return toast("Nothing to save yet.", true);
+  const btn = $("vault-save-btn");
+  btn.disabled = true; btn.textContent = "ENCRYPTING...";
+  try {
+    const { ciphertext, iv } = await LyricCrypto.encrypt(v.key, JSON.stringify({ v: 1, title, text }));
+    if (ciphertext.length >= 300000) throw new Error("This song is too long to save.");
+    if (state.songId) {
+      const { data, error } = await sb.from("lyrics").update({ ciphertext, iv }).eq("id", state.songId).select("id");
+      if (error) throw error;
+      if (!data?.length) state.songId = null;
+    }
+    if (!state.songId) {
+      const { data, error } = await sb.from("lyrics").insert({ ciphertext, iv }).select("id").single();
+      if (error) throw error;
+      state.songId = data.id;
+    }
+    state.cloudDirty = false;
+    saveDraft();
+    toast("Saved to your encrypted vault.");
+    await loadSongs();
+  } catch (err) {
+    toast("Save failed: " + (err.message || err), true);
+  } finally {
+    btn.disabled = false; btn.textContent = "SAVE TO CLOUD"; updateVaultStatus();
+  }
+}
+async function loadSongs() {
+  const v = state.vault;
+  if (!v.key) return;
+  const box = $("vault-songs");
+  box.textContent = "Loading your songs...";
+  const { data, error } = await sb.from("lyrics").select("id,ciphertext,iv,updated_at").order("updated_at", { ascending: false }).limit(200);
+  if (error) { box.textContent = "Could not load songs: " + error.message; return; }
+  const out = [];
+  for (const row of data || []) {
+    try {
+      const s = JSON.parse(await LyricCrypto.decrypt(v.key, row.ciphertext, row.iv));
+      out.push({ id: row.id, updated_at: row.updated_at, title: s.title || "", text: s.text || "" });
+    } catch { out.push({ id: row.id, updated_at: row.updated_at, broken: true }); }
+  }
+  state.songs = out;
+  renderSongList();
+}
+function renderSongList() {
+  const box = $("vault-songs");
+  box.replaceChildren();
+  if (!state.vault.key) return;
+  if (!state.songs.length) { box.textContent = "No saved songs yet. Write something and press SAVE TO CLOUD."; return; }
+  for (const s of state.songs) {
+    box.append(h("div", { class: "song-row" + (s.id === state.songId ? " is-current" : "") },
+      h("div", { style: "min-width:0" },
+        h("div", { class: "song-name truncate", text: s.broken ? "⚠ Can't decrypt this song" : (s.title || "Untitled") }),
+        h("div", { class: "mono tiny dim", text: new Date(s.updated_at).toLocaleString() })),
+      h("div", { class: "row", style: "flex-wrap:nowrap" },
+        s.broken ? null : h("button", { type: "button", class: "btn btn-soft btn-sm", "data-action": "song-open", "data-id": s.id }, "OPEN"),
+        h("button", { type: "button", class: "btn btn-danger btn-sm", "data-action": "song-delete", "data-id": s.id }, "DELETE"))));
+  }
+}
+function openSong(id) {
+  const s = state.songs.find(x => x.id === id);
+  if (!s) return;
+  if (state.cloudDirty && $("lyrics-text").value.trim() && !confirm("Discard unsaved changes in the notepad?")) return;
+  state.songId = s.id; state.cloudDirty = false;
+  setNotepad(s.title, s.text); renderSongList(); updateVaultStatus();
+  $("lyrics-text").focus();
+}
+function newSong() {
+  if (state.cloudDirty && $("lyrics-text").value.trim() && !confirm("Discard unsaved changes in the notepad?")) return;
+  state.songId = null; state.cloudDirty = false;
+  setNotepad("", ""); renderSongList(); updateVaultStatus();
+  $("lyrics-title").focus();
+}
+async function deleteSong(id) {
+  const s = state.songs.find(x => x.id === id);
+  if (!confirm(`Delete "${s?.title || "Untitled"}" from your vault? This can't be undone.`)) return;
+  const { error } = await sb.from("lyrics").delete().eq("id", id);
+  if (error) return toast("Delete failed: " + error.message, true);
+  if (id === state.songId) { state.songId = null; state.cloudDirty = true; saveDraft(); }
+  toast("Song deleted.");
+  await loadSongs();
+  updateVaultStatus();
+}
+
+/* ===================== TRANSLATOR & VOICE MODULE ===================== */
+const TAG_LINE = /^\s*\[[^\]]*\]\s*$/;
+function fillLangSelect(sel, withAuto, value) {
+  if (!sel) return;
+  sel.replaceChildren();
+  if (withAuto) sel.add(new Option("Detect language", "auto"));
+  for (const [code, name] of Object.entries(LANGS)) sel.add(new Option(name, code));
+  sel.value = value && (value === "auto" || LANGS[value]) ? value : (withAuto ? "auto" : "hi");
+}
+function splitSegments(text) {
+  const out = []; let buf = [];
+  const flush = () => { if (buf.length) { out.push({ keep: false, text: buf.join("\n") }); buf = []; } };
+  for (const line of text.split("\n")) {
+    if (!line.trim() || TAG_LINE.test(line)) { flush(); out.push({ keep: true, text: line }); }
+    else buf.push(line);
+  }
+  flush();
+  return out;
+}
+function chunkLines(text, max = 700) {
+  const chunks = []; let cur = "";
+  for (const line of text.split("\n")) {
+    const next = cur ? cur + "\n" + line : line;
+    if (next.length > max && cur) { chunks.push(cur); cur = line; } else cur = next;
+  }
+  if (cur) chunks.push(cur);
+  return chunks;
+}
+async function viaGoogle(text, from, to) {
+  const url = "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&sl=" + encodeURIComponent(from) + "&tl=" + encodeURIComponent(to) + "&q=" + encodeURIComponent(text);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Google HTTP " + res.status);
+  const data = await res.json();
+  if (!Array.isArray(data) || !Array.isArray(data[0])) throw new Error("Unexpected Google response");
+  return { text: data[0].map(seg => (seg && seg[0]) || "").join(""), detected: typeof data[2] === "string" ? data[2] : null };
+}
+function decodeEntities(s) { const t = document.createElement("textarea"); t.innerHTML = s; return t.value; }
+async function viaMyMemory(line, from, to) {
+  const pair = (from === "auto" ? "Autodetect" : from) + "|" + to;
+  const url = "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(line) + "&langpair=" + encodeURIComponent(pair);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("MyMemory HTTP " + res.status);
+  const data = await res.json();
+  const out = data?.responseData?.translatedText || "";
+  if (Number(data.responseStatus) !== 200 || /MYMEMORY WARNING|QUERY LENGTH LIMIT/i.test(out)) throw new Error(data.responseDetails || out || "MyMemory error");
+  return decodeEntities(out);
+}
+function setTrOutput(text, placeholder = false) {
+  const out = $("tr-output");
+  if (!out) return;
+  out.replaceChildren(placeholder ? h("span", { class: "dim", text }) : document.createTextNode(text));
+}
+async function translate() {
+  if (state.translating) return;
+  const input = $("tr-input").value, from = $("tr-from").value, to = $("tr-to").value, btn = $("tr-btn");
+  if (!input.trim()) return toast("Type or paste something to translate.", true);
+  if (from === to) return toast("Choose two different languages.", true);
+  if (input.length > CONFIG.maxTranslateChars) return toast(`Translate up to ${CONFIG.maxTranslateChars} characters at a time.`, true);
+
+  state.translating = true; btn.disabled = true; btn.textContent = "TRANSLATING...";
+  setTrOutput("Translating...", true); $("tr-meta").textContent = "";
+  const segs = splitSegments(input), total = segs.filter(s => !s.keep).length, parts = [];
+  let engine = "google", detected = null, done = 0;
+  try {
+    for (const seg of segs) {
+      if (seg.keep) { parts.push(seg.text); continue; }
+      let translated = "";
+      for (const chunk of chunkLines(seg.text)) {
+        let result = null;
+        if (engine === "google") {
+          try { result = await viaGoogle(chunk, from, to); detected = detected || result.detected; }
+          catch (err) { console.warn("Google Translate failed, switching to MyMemory:", err); engine = "mymemory"; }
+        }
+        if (engine === "mymemory") {
+          const lines = [];
+          for (const l of chunk.split("\n")) lines.push(l.trim() ? await viaMyMemory(l.trim(), from, to) : l);
+          result = { text: lines.join("\n") };
+        }
+        translated += (translated ? "\n" : "") + result.text.replace(/\n+$/, "");
+      }
+      parts.push(translated);
+      done++;
+      btn.textContent = `TRANSLATING ${done}/${total}`;
+      setTrOutput(parts.join("\n"));
+    }
+    state.lastTranslation = parts.join("\n");
+    state.lastDetected = detected;
+    setTrOutput(state.lastTranslation);
+    $("tr-meta").textContent = "via " + (engine === "google" ? "Google Translate" : "MyMemory") +
+      (from === "auto" && detected ? " · detected " + (LANGS[detected] || detected) : "");
+    toast("Translation complete. Click 🔊 LISTEN to hear it!");
+  } catch (err) {
+    state.lastTranslation = "";
+    setTrOutput("Translation will appear here.", true);
+    const m = String(err.message || err);
+    const msg = /failed to fetch|network/i.test(m) ? "Can't reach the translation service. Check your internet connection." : m;
+    $("tr-meta").textContent = "Translation failed";
+    toast("Translation failed: " + msg, true);
+  } finally {
+    state.translating = false; btn.disabled = false; btn.textContent = "TRANSLATE";
+  }
+}
+
+function speakTranslation() {
+  if (!("speechSynthesis" in window)) {
+    return toast("Text-to-speech is not supported in your browser.", true);
+  }
+  window.speechSynthesis.cancel();
+
+  let text = (state.lastTranslation || "").trim();
+  if (!text) {
+    const outText = $("tr-output")?.innerText?.trim() || "";
+    if (outText && outText !== "Translation will appear here." && outText !== "Translating...") {
+      text = outText;
+    } else {
+      text = $("tr-input")?.value?.trim() || $("lyrics-text")?.value?.trim() || "";
+    }
+  }
+  if (!text) {
+    return toast("Please translate or enter some lyrics first to listen.", true);
+  }
+
+  const langCode = $("tr-to")?.value || "en";
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = langCode;
+  utterance.rate = 0.95;
+
+  const voices = window.speechSynthesis.getVoices();
+  const matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith(langCode.toLowerCase()));
+  if (matchedVoice) utterance.voice = matchedVoice;
+
+  utterance.onerror = () => toast("Could not play voice for this language on your device.", true);
+  window.speechSynthesis.speak(utterance);
+  toast("🔊 Playing voice in " + (LANGS[langCode] || langCode) + "...");
+}
+
+function stopSpeech() {
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+    toast("Voice playback stopped.");
+  }
+}
+
+function swapLangs() {
+  const f = $("tr-from"), t = $("tr-to");
+  let from = f.value;
+  if (from === "auto") {
+    if (!state.lastDetected || !LANGS[state.lastDetected]) return toast("Pick a source language first (not Detect) to swap.", true);
+    from = state.lastDetected;
+  }
+  f.value = t.value; t.value = from;
+  if (state.lastTranslation) {
+    $("tr-input").value = state.lastTranslation;
+    state.lastTranslation = ""; updateTrCount();
+    setTrOutput("Translation will appear here.", true); $("tr-meta").textContent = "";
+  }
+}
+function updateTrCount() {
+  const n = $("tr-input").value.length;
+  $("tr-count").textContent = `${n} / ${CONFIG.maxTranslateChars}`;
+  $("tr-count").style.color = n > CONFIG.maxTranslateChars ? "var(--danger)" : "";
+}
+function translationToNotepad() {
+  if (!state.lastTranslation) return toast("Translate something first.", true);
+  const ta = $("lyrics-text"), f = $("tr-from").value;
+  const fromName = f === "auto" ? (LANGS[state.lastDetected] || "Auto") : LANGS[f];
+  ta.value += (ta.value ? "\n\n" : "") + `[Translation · ${fromName} → ${LANGS[$("tr-to").value]}]\n` + state.lastTranslation;
+  onNoteInput();
+  toast("Translation added to the notepad.");
+}
+
+/* ===================== EVENTS ===================== */
+const actions = {
+  "toggle-theme": () => saveSettings({ theme: resolvedTheme() === "dark" ? "light" : "dark" }),
+  "open-settings": () => { renderSettingsAccount(); openModal("settings-modal"); },
+  "close-modal": el => closeModal(el.closest(".overlay").id),
+  "set": el => saveSettings({ [el.dataset.key]: el.dataset.value }),
+  "clear-local": () => {
+    if (!confirm("Clear your local draft and reset all settings on this browser?")) return;
+    store.del(KEYS.draft); store.del(KEYS.settings);
+    settings = { ...DEFAULT_SETTINGS }; applySettings();
+    $("tr-from").value = settings.trFrom; $("tr-to").value = settings.trTo;
+    if (!state.songId) { $("lyrics-title").value = ""; $("lyrics-text").value = ""; updateStats(); }
+    $("lyrics-saved").textContent = "Local data cleared";
+    toast("Local data cleared.");
+  },
+  "open-auth": el => { closeModal("settings-modal"); openAuth(el.dataset.mode || "signin"); },
+  "auth-mode": el => setAuthMode(el.dataset.mode),
+  "auth-switch": () => setAuthMode(state.authMode === "signin" ? "signup" : "signin"),
+  "google-signin": signInWithGoogle,
+  "logout": logout,
+  "send-reset": sendResetEmail,
+  "filter": el => {
+    state.filter = el.dataset.filter;
+    document.querySelectorAll('[data-action="filter"]').forEach(b => b.classList.toggle("active", b === el));
+    renderReleases();
+  },
+  "preview": el => previewRelease(el.dataset.id),
+  "buy": el => buyRelease(el.dataset.id),
+  "toggle-play": togglePlay,
+  "copy-lyrics": () => copyText($("lyrics-text").value, "Lyrics"),
+  "download-lyrics": downloadLyrics,
+  "clear-lyrics": clearLyrics,
+  "vault-save": saveSong,
+  "vault-new": newSong,
+  "vault-lock": () => lockVault(false),
+  "song-open": el => openSong(el.dataset.id),
+  "song-delete": el => deleteSong(el.dataset.id),
+  "translate": translate,
+  "tr-swap": swapLangs,
+  "tr-use-notepad": () => {
+    const t = $("lyrics-text").value;
+    if (!t.trim()) return toast("The notepad is empty.", true);
+    $("tr-input").value = t; updateTrCount();
+  },
+  "tr-speak": speakTranslation,
+  "tr-stop": stopSpeech,
+  "tr-copy": () => copyText(state.lastTranslation, "Translation"),
+  "tr-to-notepad": translationToNotepad
+};
+
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-action]");
+  if (el && actions[el.dataset.action]) { e.preventDefault(); actions[el.dataset.action](el, e); return; }
+  if (e.target.classList?.contains("overlay")) closeModal(e.target.id);
+});
+document.addEventListener("change", e => {
+  const key = e.target.dataset?.setting;
+  if (!key) return;
+  const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
+  saveSettings({ [key]: value });
+  if (key === "trFrom") $("tr-from").value = value;
+  if (key === "trTo") $("tr-to").value = value;
+  if (key === "autosave") { if (value) saveDraft(); else { store.del(KEYS.draft); $("lyrics-saved").textContent = "Auto-save is off"; } }
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") {
+    const open = [...document.querySelectorAll(".overlay:not(.hidden)")].pop();
+    if (open) closeModal(open.id);
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s" && state.vault.key && e.target.closest?.("#lyrics")) {
+    e.preventDefault(); saveSong();
+  }
+});
+window.addEventListener("beforeunload", e => {
+  if (state.vault.key && state.songId && state.cloudDirty) { e.preventDefault(); e.returnValue = ""; }
+});
+
+$("auth-form")?.addEventListener("submit", onAuthSubmit);
+$("vault-locked")?.addEventListener("submit", unlockVault);
+$("lyrics-text")?.addEventListener("input", onNoteInput);
+$("lyrics-title")?.addEventListener("input", onNoteInput);
+$("tr-input")?.addEventListener("input", updateTrCount);
+$("search-input")?.addEventListener("input", e => { state.search = e.target.value.trim().toLowerCase(); renderReleases(); });
+$("volume")?.addEventListener("input", e => { audio.volume = Number(e.target.value); });
+
+if ("speechSynthesis" in window) {
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+}
+
+/* ===================== START ===================== */
+fillLangSelect($("tr-from"), true, settings.trFrom);
+fillLangSelect($("tr-to"), false, settings.trTo);
+fillLangSelect($("set-tr-from"), true, settings.trFrom);
+fillLangSelect($("set-tr-to"), false, settings.trTo);
+$("year").textContent = new Date().getFullYear();
+if (location.protocol === "file:") $("file-notice").classList.remove("hidden");
+applySettings();
+setAuthMode("signin");
+loadDraft();
+updateTrCount();
+loadReleases();
+initAuth();
+icons();
+})();
+</script>
+</body>
+</html>
