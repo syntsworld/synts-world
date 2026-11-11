@@ -1000,15 +1000,31 @@ function syncPlayBtn() {
 async function previewRelease(id) {
   const r = findRelease(id);
   if (!r) return;
-  if (!isHttpUrl(r.preview_url)) return toast("No audio demo attached to this lyric project yet.", true);
   state.previewing = r;
+  $("player-title").textContent = r.title;
+  $("player-artist").textContent = r.artist_name || "Synts";
+
+  if (!isHttpUrl(r.preview_url)) {
+    $("player-state").textContent = "VOICE LYRIC PREVIEW";
+    const sampleText = r.description || `${r.title} by ${r.artist_name || "Synts"}. Genre: ${r.genre || "Original Lyrics"}. Available for licensing at ${r.price_inr} rupees.`;
+    speakTextInLang(sampleText, "en");
+    return;
+  }
+
+  $("player-state").textContent = CONFIG.previewSeconds + "-SECOND DEMO";
   audio.pause();
   audio.src = r.preview_url;
   audio.currentTime = 0;
-  $("player-title").textContent = r.title;
-  $("player-artist").textContent = r.artist_name || "Synts";
-  $("player-state").textContent = CONFIG.previewSeconds + "-SECOND DEMO";
   try { await audio.play(); } catch (err) { toast("Preview unavailable: " + err.message, true); }
+}
+
+async function togglePlay() {
+  if (!audio.getAttribute("src")) {
+    // Speak whatever is in the translator or notepad if bottom play button is clicked
+    return speakTranslation();
+  }
+  try { audio.paused ? await audio.play() : audio.pause(); } catch (err) { toast(err.message, true); }
+}
 }
 async function togglePlay() {
   if (!audio.getAttribute("src")) return toast("Press ▶ on a project card to hear its demo.");
@@ -1413,26 +1429,107 @@ function speakTranslation() {
   }
   if (!text) {
     return toast("Please translate or enter some lyrics first to listen.", true);
+  }let ttsAudio = null;
+
+function speakTextInLang(text, langCode) {
+  // Stop any existing speech or audio stream
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  if (ttsAudio) {
+    ttsAudio.pause();
+    ttsAudio = null;
   }
 
-  const langCode = $("tr-to")?.value || "en";
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = langCode;
-  utterance.rate = 0.95;
+  const cleanText = (text || "").replace(/\[[^\]]*\]/g, "").trim();
+  if (!cleanText) {
+    return toast("Please translate or enter some lyrics first to listen.", true);
+  }
 
-  const voices = window.speechSynthesis.getVoices();
-  const matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith(langCode.toLowerCase()));
-  if (matchedVoice) utterance.voice = matchedVoice;
+  const lang = langCode && langCode !== "auto" ? langCode : "en";
+  const langName = LANGS[lang] || lang;
 
-  utterance.onerror = () => toast("Could not play voice for this language on your device.", true);
-  window.speechSynthesis.speak(utterance);
-  toast("🔊 Playing voice in " + (LANGS[langCode] || langCode) + "...");
+  // Check if the browser actually has a native voice for this language
+  const voices = ("speechSynthesis" in window) ? window.speechSynthesis.getVoices() : [];
+  const matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith(lang.toLowerCase()));
+
+  // Helper to play via Cloud TTS stream (works for Hindi, Kannada, Urdu, etc. without Windows voice packs)
+  const playCloudVoice = () => {
+    const chunks = cleanText.match(/.{1,180}(\s|$)|.{1,180}/g) || [cleanText];
+    let idx = 0;
+
+    const playNext = () => {
+      if (idx >= chunks.length) return;
+      const chunk = chunks[idx++].trim();
+      if (!chunk) return playNext();
+
+      const url = "https://translate.googleapis.com/translate_tts?ie=UTF-8&client=tw-ob&tl=" +
+        encodeURIComponent(lang) + "&q=" + encodeURIComponent(chunk);
+
+      ttsAudio = new Audio(url);
+      ttsAudio.volume = Number($("volume")?.value || 0.9);
+      ttsAudio.onended = playNext;
+      ttsAudio.onerror = () => {
+        // Fallback to default browser voice if cloud stream is blocked
+        if ("speechSynthesis" in window) {
+          const u = new SpeechSynthesisUtterance(cleanText);
+          u.lang = lang;
+          window.speechSynthesis.speak(u);
+        } else {
+          toast("Could not play audio stream in this browser.", true);
+        }
+      };
+      ttsAudio.play().catch(() => ttsAudio.onerror());
+    };
+
+    toast("🔊 Playing voice in " + langName + "...");
+    playNext();
+  };
+
+  // If browser has the native voice installed, use it; otherwise use Cloud TTS
+  if (matchedVoice && "speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.voice = matchedVoice;
+    utterance.lang = matchedVoice.lang;
+    utterance.rate = 0.95;
+    utterance.volume = Number($("volume")?.value || 0.9);
+    utterance.onerror = () => playCloudVoice();
+
+    // Resume in case Chrome paused speechSynthesis
+    window.speechSynthesis.resume();
+    window.speechSynthesis.speak(utterance);
+    toast("🔊 Playing voice in " + langName + "...");
+  } else {
+    playCloudVoice();
+  }
+}
+
+function speakTranslation() {
+  let text = (state.lastTranslation || "").trim();
+  let langCode = $("tr-to")?.value || "en";
+
+  if (!text) {
+    const outBox = $("tr-output");
+    const outText = outBox ? outBox.innerText.trim() : "";
+    if (outText && outText !== "Translation will appear here." && outText !== "Translating...") {
+      text = outText;
+    } else {
+      text = $("tr-input")?.value?.trim() || $("lyrics-text")?.value?.trim() || "";
+      const fromVal = $("tr-from")?.value;
+      if (fromVal && fromVal !== "auto") langCode = fromVal;
+    }
+  }
+
+  speakTextInLang(text, langCode);
 }
 
 function stopSpeech() {
-  if ("speechSynthesis" in window) {
-    window.speechSynthesis.cancel();
-    toast("Voice playback stopped.");
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  if (ttsAudio) {
+    ttsAudio.pause();
+    ttsAudio = null;
+  }
+  toast("Voice playback stopped.");
+}
   }
 }
 
