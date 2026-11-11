@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
 <meta name="description" content="SYNTS Everink: Show your creativity, write song lyrics, translate with voice playback, and sell lyric licenses.">
 <meta name="theme-color" content="#0a0a0c">
 <title>SYNTS Everink</title>
 
-<!-- Apply saved theme before the page paints (prevents a white/dark flash) -->
 <script>
 (function () {
   try {
@@ -139,6 +139,8 @@ h1, h2, h3, h4, p { margin: 0; }
 .input::placeholder { color: var(--dim); }
 textarea.input { resize: vertical; min-height: 110px; }
 select.input { cursor: pointer; }
+select.input option { background: #14151c; color: #f5f5f7; }
+html[data-theme="light"] select.input option { background: #ffffff; color: #0c0e14; }
 .form-2 { display: grid; gap: 16px; }
 .check { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; color: var(--muted); }
 input[type="checkbox"], input[type="range"] { accent-color: var(--accent); }
@@ -264,7 +266,7 @@ html.reduce-motion .record { animation: none; }
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-<div id="file-notice" class="notice hidden">You opened this page as a local file. Google sign-in, password reset and the encrypted vault need it served over http(s). Use VS Code Live Server or your hosting.</div>
+<div id="file-notice" class="notice hidden">You opened this page as a local file. Google sign-in, password reset and the encrypted vault need it served over http(s).</div>
 
 <!-- ===================== HEADER ===================== -->
 <header class="site-header">
@@ -279,9 +281,12 @@ html.reduce-motion .record { animation: none; }
       <a href="#how">LICENSING</a>
     </nav>
     <div class="header-actions">
-      <button id="theme-toggle" class="icon-btn" type="button" data-action="toggle-theme" aria-label="Switch to light mode">☀</button>
+      <button id="theme-toggle" class="icon-btn" type="button" data-action="toggle-theme" aria-label="Switch theme">☀</button>
       <button class="icon-btn" type="button" data-action="open-settings" aria-label="Settings"><i data-lucide="settings" class="ic">⚙</i></button>
-      <div id="nav-auth" class="row"></div>
+      <!-- Hardcoded fallback SIGN IN button so it is ALWAYS visible even before JS runs -->
+      <div id="nav-auth" class="row">
+        <button type="button" class="btn btn-ghost btn-sm" data-action="open-auth" data-mode="signin">SIGN IN</button>
+      </div>
     </div>
   </div>
 </header>
@@ -307,7 +312,7 @@ html.reduce-motion .record { animation: none; }
       <div class="divider">OR WITH EMAIL</div>
     </div>
     <form id="auth-form" class="stack" novalidate>
-      <label class="label" id="f-username">USERNAME
+      <label class="label hidden" id="f-username">USERNAME
         <input class="input" id="auth-username" autocomplete="nickname" maxlength="40" placeholder="SyntsCreator">
       </label>
       <label class="label" id="f-email">EMAIL ADDRESS
@@ -371,21 +376,45 @@ html.reduce-motion .record { animation: none; }
       <h4 class="eyebrow">Lyrics &amp; translation</h4>
       <label class="setting-row" for="set-autosave">
         <div><div class="set-name">Auto-save draft in this browser</div><div class="dim small">Turn off on shared computers.</div></div>
-        <input type="checkbox" id="set-autosave" data-setting="autosave">
+        <input type="checkbox" id="set-autosave" data-setting="autosave" checked>
       </label>
       <div class="setting-row">
         <div class="set-name">Default translation</div>
         <div class="row">
-          <select id="set-tr-from" class="input" style="margin:0;width:auto" data-setting="trFrom" aria-label="Default source language"></select>
+          <select id="set-tr-from" class="input" style="margin:0;width:auto" data-setting="trFrom" aria-label="Default source language">
+            <option value="auto" selected>Detect language</option>
+            <option value="en">English</option>
+            <option value="hi">Hindi (हिन्दी)</option>
+            <option value="kn">Kannada (ಕನ್ನಡ)</option>
+            <option value="ta">Tamil (தமிழ்)</option>
+            <option value="te">Telugu (తెలుగు)</option>
+            <option value="mr">Marathi (मराठी)</option>
+            <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
+            <option value="ur">Urdu (اردو)</option>
+          </select>
           <span class="dim">→</span>
-          <select id="set-tr-to" class="input" style="margin:0;width:auto" data-setting="trTo" aria-label="Default target language"></select>
+          <select id="set-tr-to" class="input" style="margin:0;width:auto" data-setting="trTo" aria-label="Default target language">
+            <option value="hi" selected>Hindi (हिन्दी)</option>
+            <option value="en">English</option>
+            <option value="kn">Kannada (ಕನ್ನಡ)</option>
+            <option value="ta">Tamil (தமிழ்)</option>
+            <option value="te">Telugu (తెలుగు)</option>
+            <option value="mr">Marathi (मराठी)</option>
+            <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
+            <option value="ur">Urdu (اردو)</option>
+          </select>
         </div>
       </div>
     </div>
 
     <div class="set-group">
       <h4 class="eyebrow">Account</h4>
-      <div id="set-account"></div>
+      <div id="set-account">
+        <div class="setting-row">
+          <div class="muted">You are not signed in.</div>
+          <button type="button" class="btn btn-primary btn-sm" data-action="open-auth" data-mode="signin">SIGN IN</button>
+        </div>
+      </div>
     </div>
 
     <div class="set-group">
@@ -450,7 +479,7 @@ html.reduce-motion .record { animation: none; }
       <button type="button" class="chip" data-action="filter" data-filter="playlist">Hooks &amp; Concepts</button>
     </div>
     <div id="release-grid" class="grid-4" aria-live="polite"></div>
-    <p class="dim small mt">Featured lyric projects and audio demos are shown in the directory. Licensing checkout stays protected until verified.</p>
+    <p class="dim small mt">Click ▶ on any project card to hear its voice demo, or license lyrics directly.</p>
   </div>
 </section>
 
@@ -490,6 +519,7 @@ html.reduce-motion .record { animation: none; }
         <div class="row between mt">
           <span id="lyrics-stats" class="mono small muted">0 lines · 0 words · 0 chars</span>
           <div class="row">
+            <button type="button" class="btn btn-primary btn-sm" data-action="speak-notepad">🔊 READ LYRICS</button>
             <button type="button" class="btn btn-soft btn-sm" data-action="copy-lyrics">COPY</button>
             <button type="button" class="btn btn-soft btn-sm" data-action="download-lyrics">DOWNLOAD .TXT</button>
             <button type="button" class="btn btn-danger btn-sm" data-action="clear-lyrics">CLEAR</button>
@@ -523,13 +553,66 @@ html.reduce-motion .record { animation: none; }
         </div>
       </div>
 
-      <!-- Translator + Voice Module -->
+      <!-- Translator + Voice Module (Options Hardcoded so they are NEVER empty) -->
       <div class="panel pad">
         <div class="row mb" style="gap:10px"><i data-lucide="languages" class="ic" style="color:#ef4444"></i><h3 class="tool-title">TRANSLATOR &amp; VOICE</h3></div>
         <div class="tr-langs">
-          <label class="label">FROM<select id="tr-from" class="input"></select></label>
+          <label class="label">FROM
+            <select id="tr-from" class="input">
+              <option value="auto" selected>Detect language</option>
+              <option value="en">English</option>
+              <option value="hi">Hindi (हिन्दी)</option>
+              <option value="kn">Kannada (ಕನ್ನಡ)</option>
+              <option value="ta">Tamil (தமிழ்)</option>
+              <option value="te">Telugu (తెలుగు)</option>
+              <option value="mr">Marathi (मराठी)</option>
+              <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
+              <option value="ur">Urdu (اردو)</option>
+              <option value="bn">Bengali (বাংলা)</option>
+              <option value="gu">Gujarati (ગુજરાતી)</option>
+              <option value="ml">Malayalam (മലയാളം)</option>
+              <option value="ar">Arabic (العربية)</option>
+              <option value="fa">Persian (فارسی)</option>
+              <option value="es">Spanish (Español)</option>
+              <option value="fr">French (Français)</option>
+              <option value="de">German (Deutsch)</option>
+              <option value="pt">Portuguese (Português)</option>
+              <option value="it">Italian (Italiano)</option>
+              <option value="tr">Turkish (Türkçe)</option>
+              <option value="ru">Russian (Русский)</option>
+              <option value="ja">Japanese (日本語)</option>
+              <option value="ko">Korean (한국어)</option>
+              <option value="zh-CN">Chinese (中文)</option>
+            </select>
+          </label>
           <button type="button" class="icon-btn" data-action="tr-swap" aria-label="Swap languages" style="margin-bottom:4px"><i data-lucide="arrow-left-right" class="ic ic-s">⇄</i></button>
-          <label class="label">TO<select id="tr-to" class="input"></select></label>
+          <label class="label">TO
+            <select id="tr-to" class="input">
+              <option value="hi" selected>Hindi (हिन्दी)</option>
+              <option value="en">English</option>
+              <option value="kn">Kannada (ಕನ್ನಡ)</option>
+              <option value="ta">Tamil (தமிழ்)</option>
+              <option value="te">Telugu (తెలుగు)</option>
+              <option value="mr">Marathi (मराठी)</option>
+              <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
+              <option value="ur">Urdu (اردو)</option>
+              <option value="bn">Bengali (বাংলা)</option>
+              <option value="gu">Gujarati (ગુજરાતી)</option>
+              <option value="ml">Malayalam (മലയാളം)</option>
+              <option value="ar">Arabic (العربية)</option>
+              <option value="fa">Persian (فارسی)</option>
+              <option value="es">Spanish (Español)</option>
+              <option value="fr">French (Français)</option>
+              <option value="de">German (Deutsch)</option>
+              <option value="pt">Portuguese (Português)</option>
+              <option value="it">Italian (Italiano)</option>
+              <option value="tr">Turkish (Türkçe)</option>
+              <option value="ru">Russian (Русский)</option>
+              <option value="ja">Japanese (日本語)</option>
+              <option value="ko">Korean (한국어)</option>
+              <option value="zh-CN">Chinese (中文)</option>
+            </select>
+          </label>
         </div>
         <textarea id="tr-input" class="input mt" rows="6" dir="auto" aria-label="Text to translate" placeholder="Type or paste lyrics to translate..."></textarea>
         <div class="row between mt-s"><span id="tr-count" class="mono tiny dim">0 / 5000</span></div>
@@ -564,7 +647,7 @@ html.reduce-motion .record { animation: none; }
 </main>
 
 <footer class="footer">
-  <span>© <span id="year"></span> Show your creativity.<br />
+  <span>© <span id="year">2026</span> Show your creativity.<br />
   Make your art reach millions.</span>
   <span>Creator Directory · Songwriting &amp; Lyric Licensing</span>
 </footer>
@@ -577,12 +660,12 @@ html.reduce-motion .record { animation: none; }
       <div style="min-width:0">
         <div id="player-title" class="truncate" style="font-weight:800;font-size:14px">Choose a project demo</div>
         <div id="player-artist" class="muted small truncate">SYNTS DIRECTORY</div>
-        <div id="player-state" class="tiny accent-text mono">PROJECT PREVIEW</div>
+        <div id="player-state" class="tiny accent-text mono">VOICE &amp; AUDIO PLAYER</div>
       </div>
     </div>
     <div class="row" style="gap:16px;flex-wrap:nowrap">
       <button type="button" id="play-btn" class="play-btn" data-action="toggle-play" aria-label="Play">▶</button>
-      <label class="vol">VOL <input type="range" id="volume" min="0" max="1" step="0.05" value="0.8" style="width:96px"></label>
+      <label class="vol">VOL <input type="range" id="volume" min="0" max="1" step="0.05" value="0.9" style="width:96px"></label>
     </div>
   </div>
 </div>
@@ -592,9 +675,6 @@ html.reduce-motion .record { animation: none; }
 (() => {
 "use strict";
 
-/* =====================================================================
-   CONFIG: publishable client keys are safe in browsers.
-   ===================================================================== */
 const CONFIG = {
   supabaseUrl: "https://zvcmbjnsvkoqoycsopkm.supabase.co",
   supabasePublishableKey: "sb_publishable_EfalUd595D0IUkfQNQ-blw_P62Kpwca",
@@ -680,12 +760,17 @@ const state = {
   releases: [], filter: "all", search: "", previewing: null,
   translating: false, lastTranslation: "", lastDetected: null,
   vault: { key: null, uid: null, record: null, checkedFor: null, checking: false, busy: false },
-  songId: null, songs: [], cloudDirty: false, draftTimer: null
+  songId: null, songs: [], cloudDirty: false, draftTimer: null,
+  speaking: false
 };
 
-const sb = (window.supabase && typeof window.supabase.createClient === "function")
-  ? window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabasePublishableKey)
-  : null;
+let sb = null;
+try {
+  if (window.supabase && typeof window.supabase.createClient === "function") {
+    sb = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabasePublishableKey);
+  }
+} catch (e) { console.warn("Supabase init warning:", e); }
+
 function requireSb() {
   if (sb) return true;
   toast("Could not load the Supabase library. Check your internet connection or ad-blocker, then refresh.", true);
@@ -707,7 +792,6 @@ function applySettings() {
   if (tbtn) {
     tbtn.textContent = theme === "dark" ? "☀" : "☾";
     tbtn.setAttribute("aria-label", theme === "dark" ? "Switch to light mode" : "Switch to dark mode");
-    tbtn.title = tbtn.getAttribute("aria-label");
   }
   syncSettingsUI();
 }
@@ -724,8 +808,8 @@ function syncSettingsUI() {
   });
   if ($("set-motion")) $("set-motion").checked = !!settings.reduceMotion;
   if ($("set-autosave")) $("set-autosave").checked = !!settings.autosave;
-  if ($("set-tr-from")) $("set-tr-from").value = settings.trFrom;
-  if ($("set-tr-to")) $("set-tr-to").value = settings.trTo;
+  if ($("set-tr-from") && settings.trFrom) $("set-tr-from").value = settings.trFrom;
+  if ($("set-tr-to") && settings.trTo) $("set-tr-to").value = settings.trTo;
 }
 lightQuery.addEventListener?.("change", () => { if (settings.theme === "system") applySettings(); });
 
@@ -795,7 +879,7 @@ function authMsg(text, isError = true) {
 }
 function setAuthMode(mode) {
   state.authMode = mode;
-  const [title, sub, submit] = AUTH_TEXT[mode];
+  const [title, sub, submit] = AUTH_TEXT[mode] || AUTH_TEXT.signin;
   $("auth-title").textContent = title;
   $("auth-sub").textContent = sub;
   $("auth-submit").textContent = submit;
@@ -816,11 +900,11 @@ function openAuth(mode = "signin") { setAuthMode(mode); openModal("auth-modal");
 function friendlyAuthError(err) {
   const m = String(err?.message || err || "");
   if (/invalid login credentials/i.test(m)) return "Wrong email or password.";
-  if (/email not confirmed/i.test(m)) return "Please confirm your email first. Check your inbox and spam folder for the link.";
+  if (/email not confirmed/i.test(m)) return "Please confirm your email first. Check your inbox and spam folder.";
   if (/provider is not enabled|unsupported provider/i.test(m)) return "Google sign-in is not switched on yet in Supabase.";
   if (/already registered|already exists/i.test(m)) return "An account with this email already exists. Sign in instead.";
   if (/rate limit|too many/i.test(m)) return "Too many attempts. Please wait a minute and try again.";
-  if (/failed to fetch|network/i.test(m)) return "Can't reach the server. Check your internet connection and try again.";
+  if (/failed to fetch|network/i.test(m)) return "Can't reach the server. Check your internet connection.";
   return m || "Something went wrong. Please try again.";
 }
 
@@ -900,6 +984,7 @@ async function sendResetEmail() {
 async function logout() {
   if (state.vault.key && state.cloudDirty && state.songId && !confirm("You have unsaved changes in your vault song. Log out anyway?")) return;
   if (sb) { const { error } = await sb.auth.signOut(); if (error) return toast(friendlyAuthError(error), true); }
+  stopSpeech();
   audio.pause();
   setUser(null);
   closeModal("settings-modal");
@@ -937,17 +1022,57 @@ function initAuth() {
     }, 0);
   });
   sb.auth.getSession()
-    .then(({ data }) => setUser(data.session?.user || null))
+    .then(({ data }) => setUser(data?.session?.user || null))
     .catch(() => setUser(null));
 }
 
 /* ===================== SYSTEMATIC DIRECTORY (MARKETPLACE) ===================== */
 function fallbackReleases() {
   return [
-    { id: "showcase-musafir", title: "Musafir (Urdu Drill Lyrics)", artist_name: "Synts", release_type: "track", genre: "Hip-Hop / Drill License", price_inr: 499, preview_url: CONFIG.publicTracks["Musafir (Urdu Drill)"] || "" },
-    { id: "showcase-mukhtalif", title: "Mukhtalif (Lo-Fi Verse & Hook)", artist_name: "Synts", release_type: "track", genre: "Lo-Fi / Bilingual Lyrics", price_inr: 399, preview_url: CONFIG.publicTracks["Mukhtalif (Lo-Fi Session)"] || "" },
-    { id: "showcase-ep", title: "After Hours (5-Song Lyric Pack)", artist_name: "Synts", release_type: "ep", genre: "Full Songwriting Pack", price_inr: 1499, preview_url: "" },
-    { id: "showcase-playlist", title: "Independent Frequencies (Hooks)", artist_name: "Synts", release_type: "playlist", genre: "Commercial Hooks & Concepts", price_inr: 799, preview_url: "" }
+    {
+      id: "showcase-musafir",
+      title: "Musafir (Urdu Drill Lyrics)",
+      artist_name: "Synts",
+      release_type: "track",
+      genre: "Hip-Hop / Drill License",
+      price_inr: 499,
+      preview_url: "",
+      sample_lang: "hi",
+      description: "रास्ते हैं अनजाने, मंज़िल का पता नहीं, मुसाफ़िर हूँ मैं रात का, रुकना मेरी अदा नहीं।"
+    },
+    {
+      id: "showcase-mukhtalif",
+      title: "Mukhtalif (Lo-Fi Verse & Hook)",
+      artist_name: "Synts",
+      release_type: "track",
+      genre: "Lo-Fi / Bilingual Lyrics",
+      price_inr: 399,
+      preview_url: "",
+      sample_lang: "hi",
+      description: "मुख्तलिफ़ है मेरी दुनिया, तेरी बातों से अलग, खामोशी में गूँजती है मेरी हर एक ग़ज़ल।"
+    },
+    {
+      id: "showcase-ep",
+      title: "After Hours (5-Song Lyric Pack)",
+      artist_name: "Synts",
+      release_type: "ep",
+      genre: "Full Songwriting Pack",
+      price_inr: 1499,
+      preview_url: "",
+      sample_lang: "en",
+      description: "City lights fade into the midnight rain, writing verses in the dark to turn the silence into art."
+    },
+    {
+      id: "showcase-playlist",
+      title: "Independent Frequencies (Hooks)",
+      artist_name: "Synts",
+      release_type: "playlist",
+      genre: "Commercial Hooks & Concepts",
+      price_inr: 799,
+      preview_url: "",
+      sample_lang: "en",
+      description: "Show your creativity and make your art reach millions. Original hooks ready for global licensing."
+    }
   ];
 }
 async function loadReleases() {
@@ -989,51 +1114,191 @@ function renderReleases() {
 }
 function findRelease(id) { return state.releases.find(r => String(r.id) === String(id)); }
 
-/* ===================== PLAYER ===================== */
+/* ===================== VOICE & AUDIO PLAYER ENGINE ===================== */
 const audio = $("audio-player");
-audio.volume = 0.8;
-function syncPlayBtn() {
-  const playing = !!audio.getAttribute("src") && !audio.paused && !audio.ended;
-  $("play-btn").textContent = playing ? "❚❚" : "▶";
-  $("play-btn").setAttribute("aria-label", playing ? "Pause" : "Play");
+audio.volume = 0.9;
+let ttsAudio = null;
+
+function setPlayButtonState(isPlaying) {
+  state.speaking = isPlaying;
+  const btn = $("play-btn");
+  if (!btn) return;
+  btn.textContent = isPlaying ? "❚❚" : "▶";
+  btn.setAttribute("aria-label", isPlaying ? "Stop" : "Play");
 }
+
+function speakTextInLang(text, langCode, customTitle) {
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  if (ttsAudio) {
+    ttsAudio.pause();
+    ttsAudio = null;
+  }
+  audio.pause();
+
+  const cleanText = (text || "").replace(/\[[^\]]*\]/g, "").trim();
+  if (!cleanText) {
+    setPlayButtonState(false);
+    return toast("Please type or translate some lyrics first to listen!", true);
+  }
+
+  const lang = (langCode && langCode !== "auto") ? langCode : "en";
+  const langName = LANGS[lang] || lang;
+
+  $("player-title").textContent = customTitle || ("Voice Playback (" + langName + ")");
+  $("player-artist").textContent = cleanText.slice(0, 60) + (cleanText.length > 60 ? "..." : "");
+  $("player-state").textContent = "🔊 SPEAKING: " + langName.toUpperCase();
+  setPlayButtonState(true);
+
+  const chunks = cleanText.match(/.{1,160}(\s|$)|.{1,160}/g) || [cleanText];
+  let idx = 0;
+
+  // Browser Web Speech fallback function
+  const fallbackBrowserSpeech = () => {
+    if (!("speechSynthesis" in window)) {
+      setPlayButtonState(false);
+      return toast("Voice playback is not supported in this browser.", true);
+    }
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(cleanText);
+    const voices = window.speechSynthesis.getVoices();
+    const match = voices.find(v => v.lang.toLowerCase().startsWith(lang.toLowerCase())) ||
+                  voices.find(v => v.lang.toLowerCase().includes("in")) ||
+                  voices[0];
+    if (match) u.voice = match;
+    u.lang = match ? match.lang : lang;
+    u.rate = 0.95;
+    u.volume = Number($("volume")?.value || 0.9);
+    u.onend = () => { setPlayButtonState(false); $("player-state").textContent = "VOICE READY"; };
+    u.onerror = () => { setPlayButtonState(false); };
+    window.speechSynthesis.resume();
+    window.speechSynthesis.speak(u);
+    toast("🔊 Speaking in " + langName + "...");
+  };
+
+  // Primary Cloud Neural TTS stream (with no-referrer so Google never blocks it)
+  const playNextChunk = () => {
+    if (!state.speaking || idx >= chunks.length) {
+      setPlayButtonState(false);
+      $("player-state").textContent = "VOICE COMPLETE";
+      return;
+    }
+    const chunk = chunks[idx++].trim();
+    if (!chunk) return playNextChunk();
+
+    const url = "https://translate.googleapis.com/translate_tts?ie=UTF-8&client=gtx&tl=" +
+      encodeURIComponent(lang) + "&q=" + encodeURIComponent(chunk);
+
+    ttsAudio = new Audio();
+    ttsAudio.referrerPolicy = "no-referrer";
+    ttsAudio.crossOrigin = "anonymous";
+    ttsAudio.src = url;
+    ttsAudio.volume = Number($("volume")?.value || 0.9);
+    ttsAudio.onended = playNextChunk;
+    ttsAudio.onerror = () => {
+      // If cloud stream is blocked by browser privacy settings, run Web Speech fallback immediately
+      fallbackBrowserSpeech();
+    };
+    const playPromise = ttsAudio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => fallbackBrowserSpeech());
+    }
+  };
+
+  toast("🔊 Playing voice in " + langName + "...");
+  playNextChunk();
+}
+
+function speakTranslation() {
+  let text = (state.lastTranslation || "").trim();
+  let langCode = $("tr-to")?.value || "hi";
+
+  if (!text) {
+    const outBox = $("tr-output");
+    const outText = outBox ? outBox.innerText.trim() : "";
+    if (outText && outText !== "Translation will appear here." && outText !== "Translating...") {
+      text = outText;
+    } else {
+      text = $("tr-input")?.value?.trim() || $("lyrics-text")?.value?.trim() || "";
+      const fromVal = $("tr-from")?.value;
+      if (fromVal && fromVal !== "auto") langCode = fromVal;
+      else langCode = "en";
+    }
+  }
+  speakTextInLang(text, langCode, "Translator Voice Studio");
+}
+
+function speakNotepad() {
+  const text = $("lyrics-text")?.value?.trim() || "";
+  if (!text) return toast("Write some lyrics in the Notepad first to hear them!", true);
+  const title = $("lyrics-title")?.value?.trim() || "Notepad Lyrics";
+  const lang = $("tr-from")?.value !== "auto" ? $("tr-from")?.value : "en";
+  speakTextInLang(text, lang, title);
+}
+
+function stopSpeech() {
+  state.speaking = false;
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  if (ttsAudio) {
+    ttsAudio.pause();
+    ttsAudio = null;
+  }
+  audio.pause();
+  setPlayButtonState(false);
+  $("player-state").textContent = "STOPPED";
+}
+
 async function previewRelease(id) {
   const r = findRelease(id);
   if (!r) return;
   state.previewing = r;
-  $("player-title").textContent = r.title;
-  $("player-artist").textContent = r.artist_name || "Synts";
 
   if (!isHttpUrl(r.preview_url)) {
-    $("player-state").textContent = "VOICE LYRIC PREVIEW";
-    const sampleText = r.description || `${r.title} by ${r.artist_name || "Synts"}. Genre: ${r.genre || "Original Lyrics"}. Available for licensing at ${r.price_inr} rupees.`;
-    speakTextInLang(sampleText, "en");
+    const sampleText = r.description || `${r.title} by ${r.artist_name || "Synts"}. Genre: ${r.genre}.`;
+    const sampleLang = r.sample_lang || "en";
+    speakTextInLang(sampleText, sampleLang, r.title);
     return;
   }
 
+  stopSpeech();
+  $("player-title").textContent = r.title;
+  $("player-artist").textContent = r.artist_name || "Synts";
   $("player-state").textContent = CONFIG.previewSeconds + "-SECOND DEMO";
-  audio.pause();
   audio.src = r.preview_url;
   audio.currentTime = 0;
-  try { await audio.play(); } catch (err) { toast("Preview unavailable: " + err.message, true); }
+  try {
+    await audio.play();
+    setPlayButtonState(true);
+  } catch (err) {
+    toast("Preview unavailable: " + err.message, true);
+  }
 }
 
 async function togglePlay() {
-  if (!audio.getAttribute("src")) {
-    // Speak whatever is in the translator or notepad if bottom play button is clicked
-    return speakTranslation();
+  if (state.speaking || (ttsAudio && !ttsAudio.paused)) {
+    stopSpeech();
+    return;
   }
-  try { audio.paused ? await audio.play() : audio.pause(); } catch (err) { toast(err.message, true); }
+  if (audio.getAttribute("src") && !audio.paused) {
+    audio.pause();
+    setPlayButtonState(false);
+    return;
+  }
+  // If nothing is playing yet, speak the current translation, notepad, or first showcase track
+  const hasTranslation = (state.lastTranslation || "").trim() || ($("tr-input")?.value || "").trim();
+  if (hasTranslation) return speakTranslation();
+  const hasNotepad = ($("lyrics-text")?.value || "").trim();
+  if (hasNotepad) return speakNotepad();
+  if (state.releases.length) return previewRelease(state.releases[0].id);
 }
-}
-async function togglePlay() {
-  if (!audio.getAttribute("src")) return toast("Press ▶ on a project card to hear its demo.");
-  try { audio.paused ? await audio.play() : audio.pause(); } catch (err) { toast(err.message, true); }
-}
-["play", "pause", "ended"].forEach(ev => audio.addEventListener(ev, syncPlayBtn));
+
+["play", "pause", "ended"].forEach(ev => audio.addEventListener(ev, () => {
+  const playing = !!audio.getAttribute("src") && !audio.paused && !audio.ended;
+  setPlayButtonState(playing);
+}));
 audio.addEventListener("timeupdate", () => {
   if (state.previewing && audio.currentTime >= CONFIG.previewSeconds) {
     audio.pause(); audio.currentTime = 0;
+    setPlayButtonState(false);
     toast(CONFIG.previewSeconds + "-second demo complete.");
   }
 });
@@ -1309,7 +1574,7 @@ async function deleteSong(id) {
   updateVaultStatus();
 }
 
-/* ===================== TRANSLATOR & VOICE MODULE ===================== */
+/* ===================== TRANSLATOR ===================== */
 const TAG_LINE = /^\s*\[[^\]]*\]\s*$/;
 function fillLangSelect(sel, withAuto, value) {
   if (!sel) return;
@@ -1399,7 +1664,7 @@ async function translate() {
     setTrOutput(state.lastTranslation);
     $("tr-meta").textContent = "via " + (engine === "google" ? "Google Translate" : "MyMemory") +
       (from === "auto" && detected ? " · detected " + (LANGS[detected] || detected) : "");
-    toast("Translation complete. Click 🔊 LISTEN to hear it!");
+    toast("Translation complete! Press 🔊 LISTEN to hear it.");
   } catch (err) {
     state.lastTranslation = "";
     setTrOutput("Translation will appear here.", true);
@@ -1409,127 +1674,6 @@ async function translate() {
     toast("Translation failed: " + msg, true);
   } finally {
     state.translating = false; btn.disabled = false; btn.textContent = "TRANSLATE";
-  }
-}
-
-function speakTranslation() {
-  if (!("speechSynthesis" in window)) {
-    return toast("Text-to-speech is not supported in your browser.", true);
-  }
-  window.speechSynthesis.cancel();
-
-  let text = (state.lastTranslation || "").trim();
-  if (!text) {
-    const outText = $("tr-output")?.innerText?.trim() || "";
-    if (outText && outText !== "Translation will appear here." && outText !== "Translating...") {
-      text = outText;
-    } else {
-      text = $("tr-input")?.value?.trim() || $("lyrics-text")?.value?.trim() || "";
-    }
-  }
-  if (!text) {
-    return toast("Please translate or enter some lyrics first to listen.", true);
-  }let ttsAudio = null;
-
-function speakTextInLang(text, langCode) {
-  // Stop any existing speech or audio stream
-  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
-  if (ttsAudio) {
-    ttsAudio.pause();
-    ttsAudio = null;
-  }
-
-  const cleanText = (text || "").replace(/\[[^\]]*\]/g, "").trim();
-  if (!cleanText) {
-    return toast("Please translate or enter some lyrics first to listen.", true);
-  }
-
-  const lang = langCode && langCode !== "auto" ? langCode : "en";
-  const langName = LANGS[lang] || lang;
-
-  // Check if the browser actually has a native voice for this language
-  const voices = ("speechSynthesis" in window) ? window.speechSynthesis.getVoices() : [];
-  const matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith(lang.toLowerCase()));
-
-  // Helper to play via Cloud TTS stream (works for Hindi, Kannada, Urdu, etc. without Windows voice packs)
-  const playCloudVoice = () => {
-    const chunks = cleanText.match(/.{1,180}(\s|$)|.{1,180}/g) || [cleanText];
-    let idx = 0;
-
-    const playNext = () => {
-      if (idx >= chunks.length) return;
-      const chunk = chunks[idx++].trim();
-      if (!chunk) return playNext();
-
-      const url = "https://translate.googleapis.com/translate_tts?ie=UTF-8&client=tw-ob&tl=" +
-        encodeURIComponent(lang) + "&q=" + encodeURIComponent(chunk);
-
-      ttsAudio = new Audio(url);
-      ttsAudio.volume = Number($("volume")?.value || 0.9);
-      ttsAudio.onended = playNext;
-      ttsAudio.onerror = () => {
-        // Fallback to default browser voice if cloud stream is blocked
-        if ("speechSynthesis" in window) {
-          const u = new SpeechSynthesisUtterance(cleanText);
-          u.lang = lang;
-          window.speechSynthesis.speak(u);
-        } else {
-          toast("Could not play audio stream in this browser.", true);
-        }
-      };
-      ttsAudio.play().catch(() => ttsAudio.onerror());
-    };
-
-    toast("🔊 Playing voice in " + langName + "...");
-    playNext();
-  };
-
-  // If browser has the native voice installed, use it; otherwise use Cloud TTS
-  if (matchedVoice && "speechSynthesis" in window) {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.voice = matchedVoice;
-    utterance.lang = matchedVoice.lang;
-    utterance.rate = 0.95;
-    utterance.volume = Number($("volume")?.value || 0.9);
-    utterance.onerror = () => playCloudVoice();
-
-    // Resume in case Chrome paused speechSynthesis
-    window.speechSynthesis.resume();
-    window.speechSynthesis.speak(utterance);
-    toast("🔊 Playing voice in " + langName + "...");
-  } else {
-    playCloudVoice();
-  }
-}
-
-function speakTranslation() {
-  let text = (state.lastTranslation || "").trim();
-  let langCode = $("tr-to")?.value || "en";
-
-  if (!text) {
-    const outBox = $("tr-output");
-    const outText = outBox ? outBox.innerText.trim() : "";
-    if (outText && outText !== "Translation will appear here." && outText !== "Translating...") {
-      text = outText;
-    } else {
-      text = $("tr-input")?.value?.trim() || $("lyrics-text")?.value?.trim() || "";
-      const fromVal = $("tr-from")?.value;
-      if (fromVal && fromVal !== "auto") langCode = fromVal;
-    }
-  }
-
-  speakTextInLang(text, langCode);
-}
-
-function stopSpeech() {
-  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
-  if (ttsAudio) {
-    ttsAudio.pause();
-    ttsAudio = null;
-  }
-  toast("Voice playback stopped.");
-}
   }
 }
 
@@ -1590,6 +1734,7 @@ const actions = {
   "preview": el => previewRelease(el.dataset.id),
   "buy": el => buyRelease(el.dataset.id),
   "toggle-play": togglePlay,
+  "speak-notepad": speakNotepad,
   "copy-lyrics": () => copyText($("lyrics-text").value, "Lyrics"),
   "download-lyrics": downloadLyrics,
   "clear-lyrics": clearLyrics,
@@ -1644,7 +1789,11 @@ $("lyrics-text")?.addEventListener("input", onNoteInput);
 $("lyrics-title")?.addEventListener("input", onNoteInput);
 $("tr-input")?.addEventListener("input", updateTrCount);
 $("search-input")?.addEventListener("input", e => { state.search = e.target.value.trim().toLowerCase(); renderReleases(); });
-$("volume")?.addEventListener("input", e => { audio.volume = Number(e.target.value); });
+$("volume")?.addEventListener("input", e => {
+  const v = Number(e.target.value);
+  audio.volume = v;
+  if (ttsAudio) ttsAudio.volume = v;
+});
 
 if ("speechSynthesis" in window) {
   window.speechSynthesis.getVoices();
