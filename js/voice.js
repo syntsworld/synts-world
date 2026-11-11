@@ -47,7 +47,21 @@
 
     window.speechSynthesis.speak(utterance);
   }
+// Automatically remove the Creator Studio / Upload a Release section
+    document.querySelectorAll("section, div").forEach((el) => {
+      if (
+        el.id === "creator" ||
+        el.id === "upload" ||
+        (el.tagName === "SECTION" && el.textContent.includes("UPLOAD A RELEASE"))
+      ) {
+        el.remove();
+      }
+    });
 
+    // Also hide any top navigation link pointing to it
+    document.querySelectorAll('a[href="#creator"], a[href="#upload"]').forEach((link) => {
+      link.remove();
+    });
   function initVoiceModule() {
     // 1. Automatically add the LISTEN button next to COPY if it isn't there yet
     const copyBtn = document.querySelector('[data-action="tr-copy"]');
