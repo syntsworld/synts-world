@@ -617,45 +617,6 @@ html.reduce-motion .record { animation: none; }
   </div>
 </section>
 
-<!-- ===================== CREATOR STUDIO ===================== -->
-<section id="studio" class="section section-alt">
-  <div class="wrap" style="display:grid;gap:48px;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))">
-    <div>
-      <span class="eyebrow">// Creator studio</span>
-      <h2 class="h2">MAKE MUSIC.<br><span class="gradient-text">MAKE A LIVING.</span></h2>
-      <p class="lead" style="line-height:1.7">Share your originals, price your tracks, EPs or authorized playlists, and grow your artist storefront. Your releases stay private until reviewed and published.</p>
-      <div class="callout mt" style="margin-top:32px"><strong>Payments and earnings:</strong> live payouts and revenue figures will appear here once secure checkout, order verification and the payout backend are connected.</div>
-    </div>
-    <div class="panel pad pad-l">
-      <div class="row mb" style="gap:12px;margin-bottom:28px"><i data-lucide="cloud-upload" class="ic ic-l accent-text"></i><h3 style="font-size:24px;font-weight:900">UPLOAD A RELEASE</h3></div>
-      <div id="studio-signin" class="center" style="padding:48px 0">
-        <p class="muted mb">Sign in or create an account to publish your music.</p>
-        <button type="button" class="btn btn-primary" data-action="open-auth" data-mode="signup">CREATE ACCOUNT</button>
-      </div>
-      <form id="studio-upload" class="stack hidden" novalidate>
-        <div class="form-2">
-          <label class="label">RELEASE TITLE<input name="title" maxlength="120" class="input" placeholder="Your next hit"></label>
-          <label class="label">ARTIST NAME<input name="artist" maxlength="120" class="input" placeholder="Artist name"></label>
-          <label class="label">RELEASE TYPE<select name="release_type" class="input"><option value="track">Track</option><option value="ep">EP</option><option value="playlist">Playlist</option></select></label>
-          <label class="label">PRICE (INR)<input name="price" type="number" min="1" max="100000" step="1" class="input" placeholder="49"></label>
-        </div>
-        <label class="label">GENRE<input name="genre" maxlength="60" class="input" placeholder="Hip-Hop, Lo-Fi, Electronic..."></label>
-        <label class="label">DESCRIPTION<textarea name="description" rows="3" maxlength="1000" class="input" placeholder="Tell listeners about your release"></textarea></label>
-        <div class="form-2">
-          <label class="label">AUDIO FILE (MP3, WAV, FLAC)<input name="audiofile" type="file" accept=".mp3,.wav,.flac,audio/*" class="input small"></label>
-          <label class="label">COVER ART (OPTIONAL)<input name="coverfile" type="file" accept="image/png,image/jpeg,image/webp" class="input small"></label>
-        </div>
-        <label class="check"><input type="checkbox" name="rights"><span>I own or control the necessary rights to upload and sell this music.</span></label>
-        <button id="upload-btn" type="submit" class="btn btn-primary btn-lg w-full">SUBMIT FOR REVIEW</button>
-        <p class="dim small">A track must be processed and approved before public listening. An EP or playlist needs a licensed multi-track release workflow before sales can be enabled.</p>
-        <div style="border-top:1px solid var(--line);padding-top:20px;margin-top:24px">
-          <h4 style="font-weight:800;margin-bottom:8px">MY RELEASES</h4>
-          <div id="my-releases" class="muted small">Sign in to view your releases.</div>
-        </div>
-      </form>
-    </div>
-  </div>
-</section>
 
 <!-- ===================== CALL TO ACTION ===================== -->
 <section class="section cta">
