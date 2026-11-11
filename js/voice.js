@@ -125,15 +125,17 @@
     const matchedVoice = voices.find((v) =>
       v.lang.toLowerCase().startsWith(langCode.toLowerCase())
     );
-    if (matchedVoice) utterance.voice = matchedVoice;
-// B. Update Top Navigation bar
+// B. Update Top Navigation links WITHOUT removing Login buttons
     const nav = document.querySelector(".nav");
     if (nav) {
-      nav.innerHTML = `
-        <a href="#marketplace">LYRICS DIRECTORY</a>
-        <a href="#lyrics">WRITE & TRANSLATE</a>
-        <a href="#how">LICENSING</a>
-      `;
+      const mLink = nav.querySelector('a[href="#marketplace"]');
+      if (mLink) mLink.textContent = "LYRICS DIRECTORY";
+
+      const lLink = nav.querySelector('a[href="#lyrics"]');
+      if (lLink) lLink.textContent = "WRITE & TRANSLATE";
+
+      const sLink = nav.querySelector('a[href="#studio"]');
+      if (sLink) sLink.remove();
     }
 
     // A. Remove old Creator Studio / Upload a Release section
