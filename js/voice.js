@@ -126,13 +126,15 @@
       v.lang.toLowerCase().startsWith(langCode.toLowerCase())
     );
     if (matchedVoice) utterance.voice = matchedVoice;
-
-    window.speechSynthesis.speak(utterance);
-  }
-
-  // 4. REBRAND HERO, DIRECTORY & REMOVE OLD AUDIO UPLOAD STUDIO
-  function customizeCreatorSite() {
-    ensureLanguagesPopulated();
+// B. Update Top Navigation bar
+    const nav = document.querySelector(".nav");
+    if (nav) {
+      nav.innerHTML = `
+        <a href="#marketplace">LYRICS DIRECTORY</a>
+        <a href="#lyrics">WRITE & TRANSLATE</a>
+        <a href="#how">LICENSING</a>
+      `;
+    }
 
     // A. Remove old Creator Studio / Upload a Release section
     document.querySelectorAll("section").forEach((sec) => {
