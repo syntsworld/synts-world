@@ -1,286 +1,198 @@
 (() => {
   "use strict";
 
-  const LANGUAGES = [
-    { code: "en", name: "English" },
-    { code: "hi", name: "Hindi (हिन्दी)" },
-    { code: "kn", name: "Kannada (ಕನ್ನಡ)" },
-    { code: "ta", name: "Tamil (தமிழ்)" },
-    { code: "te", name: "Telugu (తెలుగు)" },
-    { code: "mr", name: "Marathi (मराठी)" },
-    { code: "pa", name: "Punjabi (ਪੰਜਾਬੀ)" },
-    { code: "bn", name: "Bengali (বাংলা)" },
-    { code: "gu", name: "Gujarati (ગુજરાતી)" },
-    { code: "ml", name: "Malayalam (മലയാളം)" },
-    { code: "ur", name: "Urdu (اردو)" },
-    { code: "es", name: "Spanish (Español)" },
-    { code: "fr", name: "French (Français)" },
-    { code: "de", name: "German (Deutsch)" },
-    { code: "ja", name: "Japanese (日本語)" },
-    { code: "ko", name: "Korean (한국어)" },
-    { code: "ar", name: "Arabic (العربية)" },
-    { code: "pt", name: "Portuguese (Português)" },
-    { code: "ru", name: "Russian (Русский)" }
-  ];
+  let currentAudio = null;
+  let isSpeaking = false;
 
-  // 1. POPULATE LANGUAGE DROPDOWNS
-  function ensureLanguagesPopulated() {
-    const fromSelect = document.getElementById("tr-from");
-    const toSelect = document.getElementById("tr-to");
+  const LANG_NAMES = {
+    en: "English", hi: "Hindi", kn: "Kannada", ta: "Tamil", te: "Telugu",
+    mr: "Marathi", pa: "Punjabi", ur: "Urdu", bn: "Bengali", gu: "Gujarati",
+    ml: "Malayalam", ar: "Arabic", fa: "Persian", es: "Spanish", fr: "French",
+    de: "German", pt: "Portuguese", it: "Italian", tr: "Turkish", ru: "Russian",
+    ja: "Japanese", ko: "Korean", "zh-CN": "Chinese"
+  };
 
-    if (fromSelect && fromSelect.options.length === 0) {
-      const autoOpt = document.createElement("option");
-      autoOpt.value = "auto";
-      autoOpt.textContent = "Auto Detect";
-      fromSelect.appendChild(autoOpt);
-
-      LANGUAGES.forEach((lang) => {
-        const opt = document.createElement("option");
-        opt.value = lang.code;
-        opt.textContent = lang.name;
-        fromSelect.appendChild(opt);
-      });
-      fromSelect.value = "auto";
-    }
-
-    if (toSelect && toSelect.options.length === 0) {
-      LANGUAGES.forEach((lang) => {
-        const opt = document.createElement("option");
-        opt.value = lang.code;
-        opt.textContent = lang.name;
-        toSelect.appendChild(opt);
-      });
-      toSelect.value = "hi";
-    }
+  function showToast(msg, isErr = false) {
+    const t = document.getElementById("toast");
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.toggle("error", isErr);
+    t.classList.remove("hidden");
+    setTimeout(() => t.classList.add("hidden"), 4000);
   }
 
-  // 2. TRANSLATE FUNCTION
-  async function runTranslation() {
-    const inBox = document.getElementById("tr-input");
-    const outBox = document.getElementById("tr-output");
-    const fromSelect = document.getElementById("tr-from");
-    const toSelect = document.getElementById("tr-to");
+  function stopAllVoice() {
+    isSpeaking = false;
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.src = "";
+      currentAudio = null;
+    }
+    const oldFrame = document.getElementById("tts-hidden-frame");
+    if (oldFrame) oldFrame.remove();
 
-    if (!inBox || !outBox) return;
-    const text = inBox.value.trim();
-    if (!text) {
-      outBox.textContent = "Please enter some lyrics to translate first.";
+    const playBtn = document.getElementById("play-btn");
+    if (playBtn) playBtn.textContent = "▶";
+    const stateEl = document.getElementById("player-state");
+    if (stateEl) stateEl.textContent = "VOICE READY";
+  }
+
+  function playMultiLangVoice(rawText, langCode) {
+    stopAllVoice();
+
+    const cleanText = (rawText || "").replace(/\[[^\]]*\]/g, "").trim();
+    if (!cleanText) {
+      showToast("Please translate or enter some lyrics first to listen!", true);
       return;
     }
 
-    const sl = fromSelect && fromSelect.value ? fromSelect.value : "auto";
-    const tl = toSelect && toSelect.value ? toSelect.value : "hi";
+    const lang = (langCode && langCode !== "auto") ? langCode : "en";
+    const langLabel = LANG_NAMES[lang] || lang;
 
-    outBox.textContent = "Translating...";
+    isSpeaking = true;
+    const playBtn = document.getElementById("play-btn");
+    if (playBtn) playBtn.textContent = "❚❚";
+    const titleEl = document.getElementById("player-title");
+    if (titleEl) titleEl.textContent = "Speaking (" + langLabel + ")";
+    const stateEl = document.getElementById("player-state");
+    if (stateEl) stateEl.textContent = "🔊 PLAYING: " + langLabel.toUpperCase();
 
-    try {
-      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(
-        sl
-      )}&tl=${encodeURIComponent(tl)}&dt=t&q=${encodeURIComponent(text)}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      const translated = data[0].map((item) => item[0]).join("");
-      outBox.textContent = translated || "Could not translate text.";
-    } catch (err) {
-      console.error("Translation error:", err);
-      outBox.textContent = "Translation error. Please check your connection.";
-    }
-  }
+    showToast("🔊 Playing voice in " + langLabel + "...");
 
-  // 3. VOICE MODULE (Listen in selected language)
-  function speakTranslation() {
-    if (!("speechSynthesis" in window)) {
-      alert("Text-to-speech is not supported in your browser.");
-      return;
-    }
+    // Split text into safe 150-character phrases
+    const chunks = cleanText.match(/.{1,150}(\s|$)|.{1,150}/g) || [cleanText];
+    let idx = 0;
 
-    window.speechSynthesis.cancel();
-
-    const outBox = document.getElementById("tr-output");
-    const inBox = document.getElementById("tr-input");
-    let text = outBox ? outBox.innerText.trim() : "";
-
-    if (
-      !text ||
-      text === "Translation will appear here." ||
-      text === "Translating..." ||
-      text === "Please enter some lyrics to translate first."
-    ) {
-      text = inBox ? inBox.value.trim() : "";
-    }
-
-    if (!text) {
-      alert("Please enter or translate some lyrics first!");
-      return;
-    }
-
-    const langSelect = document.getElementById("tr-to");
-    const langCode = langSelect && langSelect.value ? langSelect.value : "en";
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = langCode;
-    utterance.rate = 0.95;
-
-    const voices = window.speechSynthesis.getVoices();
-    const matchedVoice = voices.find((v) =>
-      v.lang.toLowerCase().startsWith(langCode.toLowerCase())
-    );
-    if (matchedVoice) {
-      utterance.voice = matchedVoice;
-    }
-
-    window.speechSynthesis.speak(utterance);
-  }
-
-  // 4. REBRAND HERO, DIRECTORY & KEEP LOGIN WORKING
-  function customizeCreatorSite() {
-    ensureLanguagesPopulated();
-
-    // A. Remove old Creator Studio / Upload a Release section
-    document.querySelectorAll("section").forEach((sec) => {
-      if (sec.id === "studio" || sec.textContent.includes("UPLOAD A RELEASE")) {
-        sec.remove();
-      }
+    // Check if the user's OS/browser actually has a native voice for this exact language
+    const voices = ("speechSynthesis" in window) ? window.speechSynthesis.getVoices() : [];
+    const exactNativeVoice = voices.find(v => {
+      const vLang = v.lang.toLowerCase().replace("_", "-");
+      const target = lang.toLowerCase();
+      return vLang === target || vLang.startsWith(target + "-");
     });
 
-    // B. Update Top Navigation links WITHOUT removing Login buttons
-    const nav = document.querySelector(".nav");
-    if (nav) {
-      const mLink = nav.querySelector('a[href="#marketplace"]');
-      if (mLink) mLink.textContent = "LYRICS DIRECTORY";
-
-      const lLink = nav.querySelector('a[href="#lyrics"]');
-      if (lLink) lLink.textContent = "WRITE & TRANSLATE";
-
-      const sLink = nav.querySelector('a[href="#studio"]');
-      if (sLink) sLink.remove();
+    // Strategy 1: If OS has a real native voice for this exact language (e.g. en, hi), use it
+    if (exactNativeVoice && "speechSynthesis" in window) {
+      const u = new SpeechSynthesisUtterance(cleanText);
+      u.voice = exactNativeVoice;
+      u.lang = exactNativeVoice.lang;
+      u.rate = 0.95;
+      u.onend = () => stopAllVoice();
+      u.onerror = () => streamCloudChunks();
+      window.speechSynthesis.resume();
+      window.speechSynthesis.speak(u);
+      return;
     }
 
-    // C. Update Hero Section
-    const heroSection = document.getElementById("home");
-    if (heroSection) {
-      const pill = heroSection.querySelector(".pill");
-      if (pill) pill.innerHTML = `<span class="dot"></span> FOR CREATORS & SONGWRITERS`;
+    // Strategy 2: Stream Cloud TTS Audio for all other languages (Kannada, Tamil, Telugu, Urdu, Punjabi, etc.)
+    function streamCloudChunks() {
+      if (!isSpeaking || idx >= chunks.length) {
+        stopAllVoice();
+        return;
+      }
+      const chunk = chunks[idx++].trim();
+      if (!chunk) return streamCloudChunks();
 
-      const h1 = heroSection.querySelector("h1");
-      if (h1) {
-        h1.innerHTML = `SHOW YOUR CREATIVITY.<br><span class="gradient-text">MAKE YOUR ART REACH MILLIONS.</span>`;
+      const ttsUrls = [
+        `https://translate.googleapis.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${encodeURIComponent(lang)}&q=${encodeURIComponent(chunk)}`,
+        `https://translate.googleapis.com/translate_tts?ie=UTF-8&client=gtx&tl=${encodeURIComponent(lang)}&q=${encodeURIComponent(chunk)}`,
+        `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(chunk)}&le=${encodeURIComponent(lang)}`
+      ];
+
+      let urlIndex = 0;
+
+      function tryNextUrl() {
+        if (!isSpeaking) return;
+        if (urlIndex >= ttsUrls.length) {
+          // Strategy 3: Sandboxed iframe audio player (bypasses strict Referer blocks)
+          playViaIframe(ttsUrls[0], chunk.length);
+          return;
+        }
+
+        const audio = new Audio();
+        currentAudio = audio;
+        const volEl = document.getElementById("volume");
+        audio.volume = volEl ? Number(volEl.value) : 0.9;
+        audio.src = ttsUrls[urlIndex++];
+
+        audio.onended = () => streamCloudChunks();
+        audio.onerror = () => tryNextUrl();
+
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => tryNextUrl());
+        }
       }
 
-      const lead = heroSection.querySelector(".lead");
-      if (lead) {
-        lead.textContent =
-          "Write original song lyrics, translate across languages with voice playback, and sell lyric licenses with transparent pricing in one systematic creator directory.";
-      }
-
-      const btns = heroSection.querySelector(".row.mt");
-      if (btns) {
-        btns.innerHTML = `
-          <a href="#marketplace" class="btn btn-primary btn-lg">EXPLORE PROJECTS</a>
-          <a href="#lyrics" class="btn btn-ghost btn-lg">WRITE & SELL LYRICS ↗</a>
-        `;
-      }
-
-      const perks = heroSection.querySelector(".hero-perks");
-      if (perks) {
-        perks.innerHTML = `
-          <span>✦ Systematic Creator Directory</span>
-          <span>✦ Sell Lyric Licenses</span>
-          <span>✦ Multi-Language Voice Studio</span>
-        `;
-      }
-
-      const artText = heroSection.querySelector(".art-text");
-      if (artText) artText.innerHTML = `OWN YOUR<br>WORDS.`;
-
-      const heroCardTitle = heroSection.querySelector(".hero-art .row.between div div:nth-child(2)");
-      if (heroCardTitle) heroCardTitle.textContent = "Licensed Lyrics & Projects";
+      tryNextUrl();
     }
 
-    // D. Update Marketplace into a Systematic Lyrics & Projects Directory
-    const marketHead = document.querySelector("#marketplace .market-head div");
-    if (marketHead) {
-      marketHead.innerHTML = `
-        <span class="eyebrow">// SYSTEMATIC CREATOR DIRECTORY</span>
-        <h2 class="h2">PROJECTS & <span class="gradient-text">LYRIC LICENSES.</span></h2>
-        <p class="lead">Browse ready-to-license song lyrics, hooks, and full songwriting projects with set prices.</p>
-      `;
+    function playViaIframe(url, charCount) {
+      let frame = document.getElementById("tts-hidden-frame");
+      if (frame) frame.remove();
+      frame = document.createElement("iframe");
+      frame.id = "tts-hidden-frame";
+      frame.style.display = "none";
+      frame.referrerPolicy = "no-referrer";
+      frame.src = url;
+      document.body.appendChild(frame);
+
+      const estDurationMs = Math.max(2500, charCount * 95);
+      setTimeout(() => {
+        if (isSpeaking) streamCloudChunks();
+      }, estDurationMs);
     }
 
-    const searchInput = document.getElementById("search-input");
-    if (searchInput) {
-      searchInput.placeholder = "Search lyrics, projects, or writers...";
-    }
-
-    // E. Ensure 🔊 LISTEN & ⏹ STOP buttons exist inside the Translator
-    const copyBtn = document.querySelector('#lyrics [data-action="tr-copy"]');
-    if (copyBtn && !document.querySelector('#lyrics [data-action="tr-speak"]')) {
-      const listenBtn = document.createElement("button");
-      listenBtn.type = "button";
-      listenBtn.className = "btn btn-primary btn-sm";
-      listenBtn.setAttribute("data-action", "tr-speak");
-      listenBtn.textContent = "🔊 LISTEN";
-
-      const stopBtn = document.createElement("button");
-      stopBtn.type = "button";
-      stopBtn.className = "btn btn-soft btn-sm";
-      stopBtn.setAttribute("data-action", "tr-stop");
-      stopBtn.textContent = "⏹ STOP";
-
-      copyBtn.parentNode.appendChild(listenBtn);
-      copyBtn.parentNode.appendChild(stopBtn);
-    }
+    streamCloudChunks();
   }
 
-  // 5. EVENT HANDLERS (Speech, Translate, Swap, and Sign-In Modal Fallback)
+  // Intercept clicks on 🔊 LISTEN, 🔊 READ LYRICS, and ⏹ STOP in capture phase so voice.js always handles them
   document.addEventListener("click", (e) => {
     const speakBtn = e.target.closest('[data-action="tr-speak"]');
     if (speakBtn) {
       e.preventDefault();
-      speakTranslation();
+      e.stopImmediatePropagation();
+
+      const outBox = document.getElementById("tr-output");
+      const inBox = document.getElementById("tr-input");
+      const toSelect = document.getElementById("tr-to");
+      const fromSelect = document.getElementById("tr-from");
+
+      let text = outBox ? outBox.innerText.trim() : "";
+      let lang = toSelect ? toSelect.value : "hi";
+
+      if (!text || text === "Translation will appear here." || text === "Translating...") {
+        text = inBox ? inBox.value.trim() : "";
+        if (fromSelect && fromSelect.value !== "auto") lang = fromSelect.value;
+      }
+
+      playMultiLangVoice(text, lang);
+      return;
+    }
+
+    const noteSpeakBtn = e.target.closest('[data-action="speak-notepad"]');
+    if (noteSpeakBtn) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      const noteText = document.getElementById("lyrics-text")?.value || "";
+      const fromSelect = document.getElementById("tr-from");
+      const lang = (fromSelect && fromSelect.value !== "auto") ? fromSelect.value : "en";
+      playMultiLangVoice(noteText, lang);
       return;
     }
 
     const stopBtn = e.target.closest('[data-action="tr-stop"]');
     if (stopBtn) {
       e.preventDefault();
-      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
-      return;
+      e.stopImmediatePropagation();
+      stopAllVoice();
+      showToast("Voice playback stopped.");
     }
+  }, true);
 
-    const runBtn = e.target.closest('[data-action="tr-run"]');
-    if (runBtn) {
-      setTimeout(() => {
-        const outBox = document.getElementById("tr-output");
-        if (outBox && outBox.textContent.trim() === "Translation will appear here.") {
-          runTranslation();
-        }
-      }, 150);
-      return;
-    }
-
-    const swapBtn = e.target.closest('[data-action="tr-swap"]');
-    if (swapBtn) {
-      const fromSelect = document.getElementById("tr-from");
-      const toSelect = document.getElementById("tr-to");
-      if (fromSelect && toSelect && fromSelect.value !== "auto") {
-        const temp = fromSelect.value;
-        fromSelect.value = toSelect.value;
-        toSelect.value = temp;
-      }
-      return;
-    }
-
-    // Fallback to ensure Sign-In modal opens if clicked
-    const authTrigger = e.target.closest('[data-action="open-auth"], #auth-btn, #login-btn');
-    if (authTrigger) {
-      const modal = document.getElementById("auth-modal") || document.querySelector(".modal-backdrop, .modal");
-      if (modal) {
-        modal.hidden = false;
-        modal.classList.add("open", "active");
-        modal.style.display = "flex";
-      }
-    }
-
-    const closeTrigger = e.target.closest('[data-action="close-auth"], [data-action="close-modal"], .modal-close');
-    if
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+  }
+})();
