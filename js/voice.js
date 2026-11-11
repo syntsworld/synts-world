@@ -23,7 +23,7 @@
     { code: "ru", name: "Russian (Русский)" }
   ];
 
-  // 1. POPULATE LANGUAGE DROPDOWNS IF EMPTY
+  // 1. POPULATE LANGUAGE DROPDOWNS
   function ensureLanguagesPopulated() {
     const fromSelect = document.getElementById("tr-from");
     const toSelect = document.getElementById("tr-to");
@@ -50,11 +50,11 @@
         opt.textContent = lang.name;
         toSelect.appendChild(opt);
       });
-      toSelect.value = "hi"; // Default to Hindi
+      toSelect.value = "hi";
     }
   }
 
-  // 2. TRANSLATE FUNCTION (Fallback if main script crashed)
+  // 2. TRANSLATE FUNCTION
   async function runTranslation() {
     const inBox = document.getElementById("tr-input");
     const outBox = document.getElementById("tr-output");
@@ -125,7 +125,25 @@
     const matchedVoice = voices.find((v) =>
       v.lang.toLowerCase().startsWith(langCode.toLowerCase())
     );
-// B. Update Top Navigation links WITHOUT removing Login buttons
+    if (matchedVoice) {
+      utterance.voice = matchedVoice;
+    }
+
+    window.speechSynthesis.speak(utterance);
+  }
+
+  // 4. REBRAND HERO, DIRECTORY & KEEP LOGIN WORKING
+  function customizeCreatorSite() {
+    ensureLanguagesPopulated();
+
+    // A. Remove old Creator Studio / Upload a Release section
+    document.querySelectorAll("section").forEach((sec) => {
+      if (sec.id === "studio" || sec.textContent.includes("UPLOAD A RELEASE")) {
+        sec.remove();
+      }
+    });
+
+    // B. Update Top Navigation links WITHOUT removing Login buttons
     const nav = document.querySelector(".nav");
     if (nav) {
       const mLink = nav.querySelector('a[href="#marketplace"]');
@@ -136,23 +154,6 @@
 
       const sLink = nav.querySelector('a[href="#studio"]');
       if (sLink) sLink.remove();
-    }
-
-    // A. Remove old Creator Studio / Upload a Release section
-    document.querySelectorAll("section").forEach((sec) => {
-      if (sec.id === "studio" || sec.textContent.includes("UPLOAD A RELEASE")) {
-        sec.remove();
-      }
-    });
-
-    // B. Update Top Navigation bar
-    const nav = document.querySelector(".nav");
-    if (nav) {
-      nav.innerHTML = `
-        <a href="#marketplace">LYRICS DIRECTORY</a>
-        <a href="#lyrics">WRITE & TRANSLATE</a>
-        <a href="#how">LICENSING</a>
-      `;
     }
 
     // C. Update Hero Section
@@ -231,29 +232,31 @@
     }
   }
 
-  // Bind click events once
+  // 5. EVENT HANDLERS (Speech, Translate, Swap, and Sign-In Modal Fallback)
   document.addEventListener("click", (e) => {
     const speakBtn = e.target.closest('[data-action="tr-speak"]');
     if (speakBtn) {
       e.preventDefault();
       speakTranslation();
+      return;
     }
 
     const stopBtn = e.target.closest('[data-action="tr-stop"]');
     if (stopBtn) {
       e.preventDefault();
       if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      return;
     }
 
     const runBtn = e.target.closest('[data-action="tr-run"]');
     if (runBtn) {
-      // Check after a tiny delay if the main script didn't handle translation
       setTimeout(() => {
         const outBox = document.getElementById("tr-output");
         if (outBox && outBox.textContent.trim() === "Translation will appear here.") {
           runTranslation();
         }
       }, 150);
+      return;
     }
 
     const swapBtn = e.target.closest('[data-action="tr-swap"]');
@@ -265,19 +268,19 @@
         fromSelect.value = toSelect.value;
         toSelect.value = temp;
       }
+      return;
     }
-  });
 
-  if ("speechSynthesis" in window) {
-    window.speechSynthesis.getVoices();
-    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
-  }
+    // Fallback to ensure Sign-In modal opens if clicked
+    const authTrigger = e.target.closest('[data-action="open-auth"], #auth-btn, #login-btn');
+    if (authTrigger) {
+      const modal = document.getElementById("auth-modal") || document.querySelector(".modal-backdrop, .modal");
+      if (modal) {
+        modal.hidden = false;
+        modal.classList.add("open", "active");
+        modal.style.display = "flex";
+      }
+    }
 
-  // Run at every lifecycle stage so dropdowns and text are always populated
-  customizeCreatorSite();
-  document.addEventListener("DOMContentLoaded", customizeCreatorSite);
-  window.addEventListener("load", () => {
-    customizeCreatorSite();
-    setTimeout(customizeCreatorSite, 400);
-  });
-})();
+    const closeTrigger = e.target.closest('[data-action="close-auth"], [data-action="close-modal"], .modal-close');
+    if
