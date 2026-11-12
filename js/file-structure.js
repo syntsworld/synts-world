@@ -16,15 +16,13 @@
     if (document.getElementById("synts-dir-explorer")) return;
 
     // Locate the right-side "OWN YOUR WORDS." hero card
-    const candidates = Array.from(document.querySelectorAll("div, aside, section"));
+const candidates = Array.from(document.querySelectorAll("div, aside, section"));
     const heroVisual =
-      document.querySelector(".hero-visual, .hero-card, .vinyl-card") ||
+      document.querySelector(".hero-art, .hero-visual, .hero-card, .vinyl-card") ||
       candidates.find(
         (el) =>
-          el.textContent.includes("OWN YOUR WORDS.") &&
-          el.textContent.includes("Licensed Lyrics & Projects") &&
-          el.offsetWidth >= 240 &&
-          el.offsetWidth <= 680
+          el.textContent.includes("OWN YOUR") &&
+          el.textContent.includes("Licensed Lyrics & Projects")
       );
 
     if (!heroVisual) return;
