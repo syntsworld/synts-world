@@ -121,36 +121,84 @@
         return;
       }
       modal.remove();
-      notify(`Payment Reference #${utr} recorded! License unlocked.`);
-      if (typeof onPaid === "function") onPaid(utr);
-    };
-  }
-
-  // Wire up any "Buy", "License", or "Unlock" buttons on the page
+// Intercept all "License", "Buy", or "Unlock" buttons BEFORE index.html's "coming soon" handler
   function bindMarketplaceButtons() {
-    document.body.addEventListener("click", (e) => {
-      const btn = e.target.closest("button, a");
-      if (!btn) return;
+    // 1. Capture-phase click interceptor (blocks the "checkout integration coming soon!" toast)
+    document.addEventListener(
+      "click",
+      (e) => {
+        const btn = e.target.closest("button, a, [role='button']");
+        if (!btn || btn.closest("#synts-upi-modal") || btn.closest("#synts-creator-bar")) return;
 
-      const label = (btn.textContent || "").trim().toUpperCase();
-      if (
-        label.includes("LICENSE NOW") ||
-        label.includes("BUY LICENSE") ||
-        label.includes("UNLOCK LYRICS") ||
-        btn.hasAttribute("data-buy-lyric")
-      ) {
-        e.preventDefault();
-        const card = btn.closest("article, .card, .project-card, div") || document.body;
-        const titleEl = card.querySelector("h3, h4, .title");
-        const title = btn.getAttribute("data-title") || (titleEl ? titleEl.textContent.trim() : "Original Lyric License");
+        const label = (btn.textContent || "").trim().toUpperCase();
+        const isCheckoutTrigger =
+          btn.hasAttribute("data-buy-lyric") ||
+          btn.classList.contains("buy-btn") ||
+          btn.classList.contains("license-btn") ||
+          label.includes("LICENSE") ||
+          label.includes("BUY") ||
+          label.includes("UNLOCK") ||
+          label.includes("PURCHASE") ||
+          label.includes("GET RIGHTS");
 
-        const priceMatch = (card.textContent || "").match(/₹\s*(\d+)/);
-        const priceInr = btn.getAttribute("data-price") || (priceMatch ? priceMatch[1] : 499);
+        // Skip navigation links that just scroll to #marketplace or #lyrics
+        const href = (btn.getAttribute("href") || "").trim();
+        if (href.startsWith("#") && href.length > 1 && !label.includes("LICENSE")) return;
 
-        openUpiCheckoutModal({
-          title,
-          priceInr,
-          onPaid: () => {
+        if (isCheckoutTrigger) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+
+          const card =
+            btn.closest("article, .card, .project-card, .market-card, .synts-custom-market-card, li, div") ||
+            document.body;
+          const titleEl = card.querySelector("h3, h4, h2, .title, .card-title, strong");
+          const title =
+            btn.getAttribute("data-title") ||
+            (titleEl ? titleEl.textContent.trim() : "Original Lyric License");
+
+          // Parse comma-formatted INR prices like ₹1,499 accurately
+          const priceText = btn.getAttribute("data-price") || card.textContent || "";
+          const priceMatch = priceText.match(/₹\s*([\d,]+(?:\.\d{1,2})?)/);
+          const priceInr = priceMatch
+            ? Number(priceMatch[1].replace(/,/g, ""))
+            : Number(String(btn.getAttribute("data-price") || "").replace(/[^\d.]/g, "")) || 499;
+
+          // Hide any "coming soon" toast if it was triggered
+          const toastEl = document.getElementById("toast");
+          if (toastEl) toastEl.classList.add("hidden");
+
+          openUpiCheckoutModal({
+            title,
+            priceInr,
+            onPaid: () => {
+              const lockedPre = card.querySelector("[data-locked-lyrics]");
+              if (lockedPre) {
+                lockedPre.style.filter = "none";
+                lockedPre.style.userSelect = "text";
+              }
+              btn.textContent = "✓ LICENSE UNLOCKED";
+            }
+          });
+        }
+      },
+      true // <-- CRITICAL: true runs in Capture Phase BEFORE index.html's dummy handler
+    );
+
+    // 2. Fallback observer: if index.html ever triggers the "checkout integration coming soon!" toast directly,
+    // immediately hide that dummy toast and pop open the real UPI QR Checkout Modal with that exact title & price!
+    const toastEl = document.getElementById("toast");
+    if (toastEl && !toastEl.dataset.upiWatched) {
+      toastEl.dataset.upiWatched = "true";
+      const observer = new MutationObserver(() => {
+        const msg = toastEl.textContent || "";
+        if (msg.toLowerCase().includes("checkout integration coming soon")) {
+          toastEl.classList.add("hidden");
+          const titleMatch = msg.match(/"([^"]+)"/);
+          const priceMatch = msg.match(/₹\s*([\d,]+)/);
+          const extractedTitle = titleMatch ? titleMatch[1] : "Licensed Lyric Pack";
+          const extractedPrice
             const lockedPre = card.querySelector("[data-locked-lyrics]");
             if (lockedPre) {
               lockedPre.style.filter = "none";
