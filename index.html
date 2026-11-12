@@ -9,23 +9,22 @@
 <title>Synts Everink</title>
 
 <script>
-(function () {
-  try {
-    var s = JSON.parse(localStorage.getItem('synts_settings') || '{}');
-    var t = s.theme || 'system';
-    if (t === 'system') t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-    var r = document.documentElement;
-    r.setAttribute('data-theme', t);
-    r.setAttribute('data-accent', s.accent || 'green');
-    r.setAttribute('data-font', s.fontSize || 'm');
-    if (s.reduceMotion) r.classList.add('reduce-motion');
-  } catch (e) {}
-})();
+  (function () {
+    try {
+      var s = JSON.parse(localStorage.getItem('synts_settings') || '{}');
+      var t = s.theme || 'system';
+      if (t === 'system') t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      var r = document.documentElement;
+      r.setAttribute('data-theme', t);
+      r.setAttribute('data-accent', s.accent || 'green');
+      r.setAttribute('data-font', s.fontSize || 'm');
+      if (s.reduceMotion) r.classList.add('reduce-motion');
+    } catch (e) {}
+  })();
+  </script>
   <script src="js/voice.js" defer></script>
   <script src="js/payment.js" defer></script>
-  <script src="js/file-structure.js"></script>
-</script>
-<script src="js/voice.js" defer></script>
+  <script src="js/file-structure.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
