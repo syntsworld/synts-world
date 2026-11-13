@@ -33,17 +33,46 @@
     localStorage.setItem(key, JSON.stringify(val));
   }
 
-  // Default to "listener" (Normal User) so visitors only see Exploration & Notepad by default
   const defaultProfile = {
-    role: "listener", // "listener" (Normal User) | "artist" (Artist Customization Mode)
+    role: "listener",
     name: "Synts",
     handle: "@synts_official",
-    bio: "Independent Artist, Songwriter & Producer",
+    bio: "Welcome to World of Art",
     upiId: "apex.santosh.2001@yescred"
   };
 
   let activeTab = "OVERVIEW";
-  let drawerOpen = false; // Collapsed into a sleek 54px rail by default so the page stays uncluttered
+  let drawerOpen = false;
+
+  // Replace "SYNTS EVERINK" brand text with "WELCOME TO WORLD OF ART"
+  function updateBrandHeader() {
+    const allHeaderEls = document.querySelectorAll("header a, header span, header div, .brand, .logo, footer a, footer span");
+    allHeaderEls.forEach((el) => {
+      if (el.children.length === 0 && /everink/i.test(el.textContent || "")) {
+        el.textContent = "WORLD OF ART";
+      } else if (
+        el.children.length <= 2 &&
+        /synts\s*everink/i.test((el.textContent || "").trim())
+      ) {
+        // Keep the 'S' logo icon if present, and replace the text with "WELCOME TO WORLD OF ART"
+        const iconChild = el.querySelector(".logo-mark, .brand-mark, svg, img") || el.firstElementChild;
+        if (iconChild && iconChild.textContent.trim().length <= 2) {
+          const cloneIcon = iconChild.cloneNode(true);
+          el.innerHTML = "";
+          el.appendChild(cloneIcon);
+          const textSpan = document.createElement("span");
+          textSpan.innerHTML = `WELCOME TO <span style="background:linear-gradient(90deg,#4ade80,#facc15,#fb7185);-webkit-background-clip:text;-webkit-text-fill-color:transparent">WORLD OF ART</span>`;
+          textSpan.style.marginLeft = "10px";
+          textSpan.style.fontWeight = "800";
+          el.appendChild(textSpan);
+        }
+      }
+    });
+
+    if (document.title.toLowerCase().includes("everink")) {
+      document.title = "Synts — Welcome to World of Art";
+    }
+  }
 
   function injectSidebarStyles() {
     if (document.getElementById("synts-left-dock-css")) return;
@@ -98,15 +127,16 @@
       customUploads.length +
       treeDirs.reduce((acc, c) => acc + (c.subfolders || []).reduce((s, f) => s + (f.files || []).length, 0), 0);
 
-    // Filter menu items based on Normal User vs Artist Customization Mode
     const navItems = [
       { id: "OVERVIEW", icon: "⚡", label: "Overview", count: "" },
       ...(isArtist
         ? [
-            { id: "CUSTOMIZE", icon: "🛠️", label: "Artist Builder & Directories", count: totalUploadedFiles },
-            { id: "SETTINGS", icon: "⚙️", label: "Artist Profile & UPI", count: "" }
+            { id: "CUSTOMIZE", icon: "🛠️", label: "Builder & Directories", count: totalUploadedFiles },
+            { id: "SETTINGS", icon: "⚙️", label: "Profile & UPI Settings", count: "" }
           ]
-        : []),
+        : [
+            { id: "SETTINGS", icon: "⚙️", label: "Profile Settings", count: "" }
+          ]),
       { id: "PURCHASES", icon: "🛍️", label: "My Purchases", count: purchases.length },
       { id: "LISTENING", icon: "🎧", label: "Listening History", count: listenHist.length },
       { id: "READING", icon: "📖", label: "Reading History", count: readHist.length },
@@ -173,11 +203,7 @@
     if (activeTab === "OVERVIEW") {
       panelHtml = `
         <div style="font-size:12px;color:#9ca3af;margin-bottom:12px">
-          ${
-            isArtist
-              ? "🎨 <strong>Artist Customization Mode is ON.</strong> You can now build your own directories at the top of the page, list songs for sale from the Notepad, and customize your catalog."
-              : "🎧 <strong>Normal User View.</strong> Only the Project Exploration Marketplace and Notepad Studio are visible. Switch to <strong>Artist Mode</strong> above to unlock directory building and customization."
-          }
+          Welcome to World of Art, <strong style="color:#fff">${profile.name}</strong>.
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px">
@@ -195,7 +221,7 @@
     if (activeTab === "CUSTOMIZE") {
       panelHtml = `
         <div style="display:flex;flex-direction:column;gap:10px">
-          <div style="font-family:monospace;font-size:10px;color:#4ade80;font-weight:800">🛠️ ARTIST DIRECTORY &amp; PAGE BUILDER</div>
+          <div style="font-family:monospace;font-size:10px;color:#4ade80;font-weight:800">🛠️ DIRECTORY &amp; PAGE BUILDER</div>
           <p style="font-size:12px;color:#9ca3af;margin:0">
             Build your own folder hierarchy, upload lyrics/stems, or jump to the top Directory Builder.
           </p>
@@ -234,7 +260,7 @@
           </div>`
             )
             .join("")
-        : `<div style="font-size:12px;color:#64748b">No listening history yet. Play any demo or voice track!</div>`;
+        : `<div style="font-size:12px;color:#64748b">No listening history yet.</div>`;
     }
 
     if (activeTab === "READING") {
@@ -268,12 +294,12 @@
     if (activeTab === "SETTINGS") {
       panelHtml = `
         <div style="display:flex;flex-direction:column;gap:8px">
-          <label style="font-size:10px;font-family:monospace;color:#9ca3af">ARTIST STAGE NAME</label>
+          <label style="font-size:10px;font-family:monospace;color:#9ca3af">YOUR NAME</label>
           <input type="text" id="prof-name" value="${profile.name}" style="width:100%;font-size:12px;padding:8px" />
           <label style="font-size:10px;font-family:monospace;color:#9ca3af">PAYOUT UPI ID</label>
           <input type="text" id="prof-upi" value="${profile.upiId}" style="width:100%;font-size:12px;padding:8px" />
           <button type="button" id="save-prof-btn" style="background:#4ade80;color:#041208;border:none;border-radius:8px;padding:9px;font-family:monospace;font-size:11px;font-weight:800;cursor:pointer;margin-top:4px">
-            ✓ SAVE ARTIST SETTINGS
+            ✓ SAVE SETTINGS
           </button>
         </div>
       `;
@@ -282,22 +308,26 @@
     sidebar.innerHTML = `
       <div style="padding:14px;border-bottom:1px solid rgba(255,255,255,0.08)">
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <strong style="font-size:14px;color:#fff">${profile.name} (${profile.role.toUpperCase()})</strong>
+          <div>
+            <!-- ONLY SHOW USER NAME (No Artist/Listener label next to name) -->
+            <strong style="font-size:16px;color:#fff;display:block">${profile.name}</strong>
+            <span style="font-size:10px;color:#4ade80;font-family:monospace;letter-spacing:0.04em">Welcome to World of Art</span>
+          </div>
           <button type="button" id="collapse-dock-btn" style="background:rgba(255,255,255,0.06);color:#9ca3af;border:none;border-radius:7px;width:26px;height:26px;cursor:pointer">❮</button>
         </div>
 
-        <!-- Role Switcher: Normal User vs Artist Customization -->
+        <!-- Mode Switcher: Explore vs Customize -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;background:rgba(0,0,0,0.45);padding:4px;border-radius:10px;margin-top:10px">
           <button type="button" data-role-switch="listener" style="
             padding:6px;border-radius:7px;border:none;font-family:monospace;font-size:10px;font-weight:800;cursor:pointer;
             background:${!isArtist ? "#38bdf8" : "transparent"};
             color:${!isArtist ? "#041208" : "#9ca3af"};
-          ">🎧 USER VIEW</button>
+          ">🎧 EXPLORE</button>
           <button type="button" data-role-switch="artist" style="
             padding:6px;border-radius:7px;border:none;font-family:monospace;font-size:10px;font-weight:800;cursor:pointer;
             background:${isArtist ? "#4ade80" : "transparent"};
             color:${isArtist ? "#041208" : "#9ca3af"};
-          ">🎨 ARTIST CUSTOMIZE</button>
+          ">🛠️ CUSTOMIZE</button>
         </div>
       </div>
 
@@ -348,8 +378,8 @@
         window.dispatchEvent(new Event("synts-role-changed"));
         notify(
           p.role === "artist"
-            ? "Artist Customization Mode enabled! Directory Builder is now visible."
-            : "Switched to clean Normal User View (Exploration + Notepad only)."
+            ? "Customization Mode enabled! Directory Builder is now unlocked."
+            : "Switched to Explore View."
         );
       };
     });
@@ -362,12 +392,13 @@
         p.upiId = sidebar.querySelector("#prof-upi").value.trim() || p.upiId;
         setStore(KEYS.PROFILE, p);
         renderSidebar();
-        notify("Artist settings saved!");
+        notify("Profile saved!");
       };
     }
   }
 
   function init() {
+    updateBrandHeader();
     injectSidebarStyles();
     buildLeftSidebar();
   }
