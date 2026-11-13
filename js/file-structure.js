@@ -34,16 +34,13 @@
     notify(`Loaded "${title}" into Writing Studio!`);
   }
 
-  // =========================================================================
   // 1. FULL-WIDTH HERO STUDIO DIRECTORY (REMOVES LEFT TEXT CLUTTER)
-  // =========================================================================
   function initArtistDirectoryTree() {
     if (document.getElementById("synts-dir-explorer")) return;
 
     const heroGrid = document.querySelector("#home .hero-grid, .hero-grid");
     const heroSection = document.querySelector("#home, .hero");
     const heroVisual = document.querySelector(".hero-art") || heroGrid;
-
     if (!heroVisual) return;
 
     if (heroGrid) {
@@ -439,12 +436,14 @@
     renderTree();
   }
 
-  // =========================================================================
   // 2. REPLACE "LICENSING THAT PAYS WRITERS." WITH WRITING TEMPLATES
-  // =========================================================================
   function initWritingExplorerSection() {
     if (document.getElementById("synts-writing-hub")) return;
-    const targetSection = document.getElementById("how");
+    const targetSection =
+      document.getElementById("how") ||
+      Array.from(document.querySelectorAll("section")).find((s) =>
+        (s.textContent || "").toUpperCase().includes("PAYS WRITERS")
+      );
     if (!targetSection) return;
 
     const defaultWritingLibrary = [
@@ -523,21 +522,24 @@
     renderCards();
   }
 
-  // =========================================================================
   // 3. REPLACE "YOUR CREATIVITY DESERVES MILLIONS." WITH LYRICAL PLAYLISTS, PROJECT EPs & SINGLES
-  // =========================================================================
   function initReleasesAndPlaylistsSection() {
     if (document.getElementById("synts-releases-hub")) return;
 
-    const allEls = Array.from(document.querySelectorAll("section, div"));
-    const ctaTarget = allEls.find(
-      (el) =>
-        el.textContent.includes("YOUR CREATIVITY") &&
-        el.textContent.includes("DESERVES MILLIONS") &&
-        el.textContent.includes("JOIN AS A CREATOR") &&
-        el.offsetHeight > 120 &&
-        el.offsetHeight < 750
-    );
+    // Case-insensitive search so it matches regardless of CSS uppercase
+    const candidates = Array.from(document.querySelectorAll(".cta-banner, .cta-box, .cta-card, section, div"));
+    const ctaTarget = candidates
+      .reverse()
+      .find((el) => {
+        const up = (el.textContent || "").toUpperCase();
+        return (
+          up.includes("YOUR CREATIVITY") &&
+          up.includes("DESERVES MILLIONS") &&
+          el.tagName !== "BODY" &&
+          el.tagName !== "HTML" &&
+          el.tagName !== "MAIN"
+        );
+      });
 
     if (!ctaTarget) return;
 
@@ -599,7 +601,6 @@
 
     ctaTarget.innerHTML = `
       <div id="synts-releases-hub" style="max-width:1180px;margin:0 auto;padding:12px 6px;text-align:left">
-        <!-- Top Header & Filter Bar -->
         <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.09)">
           <div>
             <div style="font-family:monospace;font-size:11px;color:#4ade80;letter-spacing:0.12em;margin-bottom:4px">
@@ -625,7 +626,6 @@
           </div>
         </div>
 
-        <!-- Releases Grid -->
         <div id="synts-releases-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px"></div>
       </div>
     `;
@@ -727,4 +727,20 @@
 
       localStorage.setItem(STORAGE_RELEASES_KEY, JSON.stringify(catalog));
       renderReleases();
-      notify
+      notify(`Published "${title}" to your Catalog!`);
+    };
+
+    renderReleases();
+  }
+
+  function bootAll() {
+    initArtistDirectoryTree();
+    initWritingExplorerSection();
+    initReleasesAndPlaylistsSection();
+  }
+
+  bootAll();
+  document.addEventListener("DOMContentLoaded", bootAll);
+  setTimeout(bootAll, 400);
+  setTimeout(bootAll, 1200);
+})();
