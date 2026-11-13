@@ -1,54 +1,474 @@
-/* ==========================================
-   SYNTS - Main Stylesheet
-   ========================================== */
+/* ==========================================================================
+   SYNTS WORLD — CREATOR STUDIO WEB APP DESIGN SYSTEM (v3.0)
+   ========================================================================== */
+
+:root,
+[data-theme="dark"] {
+  --bg-canvas: #07090d;
+  --bg-surface: #0d1117;
+  --bg-elevated: rgba(18, 24, 32, 0.82);
+  --bg-glass: rgba(14, 19, 26, 0.72);
+  --bg-input: rgba(7, 10, 14, 0.9);
+
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --border-glow: rgba(74, 222, 128, 0.38);
+
+  --text-primary: #f3f6fa;
+  --text-secondary: #9ca3af;
+  --text-muted: #64748b;
+
+  --accent: #4ade80;
+  --accent-strong: #22c55e;
+  --accent-soft: rgba(74, 222, 128, 0.14);
+  --accent-glow: rgba(74, 222, 128, 0.28);
+
+  --warn: #facc15;
+  --danger: #f87171;
+  --info: #60a5fa;
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+
+  --shadow-app: 0 24px 60px -12px rgba(0, 0, 0, 0.78), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --shadow-card: 0 16px 38px -10px rgba(0, 0, 0, 0.65);
+  --shadow-glow: 0 0 32px -4px var(--accent-glow);
+
+  --font-sans: "Inter", "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", "SFMono-Regular", Consolas, monospace;
+}
+
+/* Light Mode Support */
+[data-theme="light"] {
+  --bg-canvas: #f1f5f9;
+  --bg-surface: #ffffff;
+  --bg-elevated: rgba(255, 255, 255, 0.92);
+  --bg-glass: rgba(255, 255, 255, 0.84);
+  --bg-input: #f8fafc;
+
+  --border-subtle: rgba(15, 23, 42, 0.08);
+  --border-strong: rgba(15, 23, 42, 0.15);
+  --border-glow: rgba(22, 163, 74, 0.35);
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+
+  --accent: #16a34a;
+  --accent-strong: #15803d;
+  --accent-soft: rgba(22, 163, 74, 0.12);
+  --accent-glow: rgba(22, 163, 74, 0.22);
+
+  --shadow-app: 0 20px 45px -15px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(15, 23, 42, 0.06);
+  --shadow-card: 0 12px 28px -8px rgba(15, 23, 42, 0.08);
+}
+
+/* Dynamic Accent Presets */
+[data-accent="purple"] {
+  --accent: #a855f7;
+  --accent-strong: #9333ea;
+  --accent-soft: rgba(168, 85, 247, 0.15);
+  --accent-glow: rgba(168, 85, 247, 0.3);
+  --border-glow: rgba(168, 85, 247, 0.4);
+}
+[data-accent="blue"],
+[data-accent="cyan"] {
+  --accent: #38bdf8;
+  --accent-strong: #0284c7;
+  --accent-soft: rgba(56, 189, 248, 0.15);
+  --accent-glow: rgba(56, 189, 248, 0.3);
+  --border-glow: rgba(56, 189, 248, 0.4);
+}
+[data-accent="amber"],
+[data-accent="orange"] {
+  --accent: #fbbf24;
+  --accent-strong: #d97706;
+  --accent-soft: rgba(251, 191, 36, 0.15);
+  --accent-glow: rgba(251, 191, 36, 0.3);
+  --border-glow: rgba(251, 191, 36, 0.4);
+}
+[data-accent="rose"],
+[data-accent="red"] {
+  --accent: #fb7185;
+  --accent-strong: #e11d48;
+  --accent-soft: rgba(251, 113, 133, 0.15);
+  --accent-glow: rgba(251, 113, 133, 0.3);
+  --border-glow: rgba(251, 113, 133, 0.4);
+}
+
+/* Font Scaling */
+[data-font="s"] { font-size: 14px; }
+[data-font="m"] { font-size: 16px; }
+[data-font="l"] { font-size: 17.5px; }
+
+/* ==========================================================================
+   1. GLOBAL WEB-APP SHELL & STUDIO GRID BACKGROUND
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
 body {
-    background-color: #0a0a0c;
-    color: #f3f4f6;
-    font-family: 'Outfit', sans-serif;
-    overflow-x: hidden;
-    margin: 0;
-    padding-bottom: 8rem;
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--bg-canvas);
+  /* Studio DAW Matrix Grid + Ambient Top Spotlight */
+  background-image:
+    radial-gradient(circle at 18% 12%, var(--accent-soft), transparent 38%),
+    radial-gradient(circle at 82% 8%, rgba(99, 102, 241, 0.11), transparent 36%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+  background-attachment: fixed;
+  color: var(--text-primary);
+  overflow-x: hidden;
+  line-height: 1.6;
 }
 
-/* Glassmorphism Panels */
-.glass-panel {
-    background: rgba(18, 19, 26, 0.75);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-/* Neon Glow Effects */
-.neon-glow {
-    box-shadow: 0 0 25px rgba(0, 242, 254, 0.25);
-}
-
-.neon-glow-pink {
-    box-shadow: 0 0 25px rgba(255, 0, 128, 0.25);
-}
-
-/* Gradients */
-.text-gradient {
-    background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #00f2fe 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-/* Custom Scrollbar */
+/* Custom App Scrollbars */
 ::-webkit-scrollbar {
-    width: 6px;
+  width: 8px;
+  height: 8px;
 }
-
 ::-webkit-scrollbar-track {
-    background: #0a0a0c;
+  background: rgba(0, 0, 0, 0.25);
 }
-
 ::-webkit-scrollbar-thumb {
-    background: #222430;
-    border-radius: 3px;
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
 }
 
-::-webkit-scrollbar-thumb:hover {
-    background: #00f2fe;
+::selection {
+  background: var(--accent);
+  color: #041007;
+}
+
+/* ==========================================================================
+   2. FLOATING GLASS APP TOPBAR / NAVIGATION DOCK
+   ========================================================================== */
+
+header,
+nav,
+.navbar,
+.site-header,
+.top-nav {
+  position: sticky;
+  top: 12px;
+  z-index: 1000;
+  margin: 0 auto;
+  max-width: 1280px;
+  background: var(--bg-glass) !important;
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid var(--border-strong) !important;
+  border-radius: 18px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.48);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+header:hover,
+nav:hover,
+.navbar:hover {
+  border-color: var(--border-glow) !important;
+}
+
+nav a,
+header a {
+  position: relative;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: color 0.2s ease, background-color 0.2s ease;
+  padding: 6px 12px;
+  border-radius: 10px;
+}
+
+nav a:hover,
+header a:hover,
+nav a.active {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ==========================================================================
+   3. WORKSPACE PANELS, SECTIONS & BENTO CARDS
+   ========================================================================== */
+
+section {
+  position: relative;
+  max-width: 1280px;
+  margin: 28px auto;
+  padding: 36px 28px;
+  background: linear-gradient(180deg, rgba(17, 23, 31, 0.72), rgba(10, 14, 20, 0.84));
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-app);
+  backdrop-filter: blur(12px);
+}
+
+/* Window Status Accent Bar on top of every Major App Section */
+section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 32px;
+  right: 32px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.55;
+}
+
+/* Interactive Bento Cards (Marketplace, Projects, Writing Explorer, Features) */
+article,
+.card,
+.project-card,
+.market-card,
+.synts-custom-market-card,
+#writing-cards-grid > div {
+  position: relative;
+  background: linear-gradient(165deg, rgba(21, 28, 37, 0.92), rgba(11, 15, 21, 0.96)) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.22s ease,
+              box-shadow 0.22s ease !important;
+  overflow: hidden;
+}
+
+article:hover,
+.card:hover,
+.project-card:hover,
+.market-card:hover,
+.synts-custom-market-card:hover,
+#writing-cards-grid > div:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-glow) !important;
+  box-shadow: 0 22px 48px -12px rgba(0, 0, 0, 0.85), var(--shadow-glow) !important;
+}
+
+/* ==========================================================================
+   4. TYPOGRAPHY & GRADIENT STUDIO HEADINGS
+   ========================================================================== */
+
+h1, h2, h3, h4 {
+  color: var(--text-primary);
+  letter-spacing: -0.025em;
+  font-weight: 800;
+}
+
+h1 {
+  font-size: clamp(2.25rem, 4.6vw, 4rem);
+  line-height: 1.04;
+  text-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+}
+
+h2 {
+  font-size: clamp(1.65rem, 3.2vw, 2.5rem);
+  line-height: 1.12;
+}
+
+code,
+pre,
+.mono {
+  font-family: var(--font-mono) !important;
+}
+
+/* ==========================================================================
+   5. STUDIO EDITOR WORKSTATION (NOTEPAD, INPUTS, SELECTS, VOICE CONTROLS)
+   ========================================================================== */
+
+input[type="text"],
+input[type="number"],
+input[type="password"],
+input[type="email"],
+input[type="search"],
+select,
+textarea {
+  background: var(--bg-input) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 11px 14px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.55);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  outline: none;
+}
+
+/* Make the Lyric Writing Textarea look like a real Pro Studio Code/Lyric Pad */
+textarea,
+#lyrics textarea {
+  font-family: var(--font-mono) !important;
+  font-size: 0.96rem !important;
+  line-height: 1.75 !important;
+  min-height: 290px;
+  padding: 18px 20px !important;
+  border-radius: var(--radius-md) !important;
+  background-color: #070a0f !important;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px) !important;
+  background-size: 100% 28px !important;
+  border: 1px solid rgba(74, 222, 128, 0.22) !important;
+  box-shadow: inset 0 4px 18px rgba(0, 0, 0, 0.75);
+  resize: vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-soft), inset 0 2px 6px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ==========================================================================
+   6. TACTILE WEB-APP BUTTONS & HARDWARE CONTROLS
+   ========================================================================== */
+
+button,
+.btn,
+a.btn,
+[role="button"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+button:active,
+.btn:active,
+a.btn:active {
+  transform: scale(0.97);
+}
+
+/* Primary Neon Studio CTA Buttons */
+button.primary,
+.btn-primary,
+[data-buy-lyric],
+#list-sale-btn,
+#create-writing-entry-btn {
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong)) !important;
+  color: #041108 !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  font-weight: 800 !important;
+  box-shadow: 0 8px 22px -4px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+button.primary:hover,
+.btn-primary:hover,
+[data-buy-lyric]:hover,
+#list-sale-btn:hover,
+#create-writing-entry-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px -2px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+  filter: brightness(1.06);
+}
+
+/* ==========================================================================
+   7. DIRECTORY EXPLORER & MODAL POLISH
+   ========================================================================== */
+
+#synts-dir-explorer {
+  position: relative;
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glow) !important;
+  box-shadow: var(--shadow-app), var(--shadow-glow) !important;
+}
+
+#synts-tree-body > div {
+  transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+#synts-tree-body > div:hover {
+  border-color: var(--border-glow) !important;
+}
+
+/* Toast Notification Dock (Bottom Right App Notification) */
+#toast {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  z-index: 100000 !important;
+  background: rgba(13, 18, 24, 0.96) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-glow) !important;
+  border-left: 4px solid var(--accent) !important;
+  border-radius: 14px !important;
+  padding: 14px 20px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.85rem !important;
+  font-weight: 600;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.75), var(--shadow-glow) !important;
+  backdrop-filter: blur(14px);
+  max-width: 420px;
+}
+
+#toast.error {
+  border-color: rgba(248, 113, 113, 0.45) !important;
+  border-left-color: var(--danger) !important;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ==========================================================================
+   8. RESPONSIVE MOBILE & TABLET WEB-APP SHELL
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  header,
+  nav,
+  .navbar {
+    top: 6px;
+    margin: 0 8px;
+    border-radius: 14px;
+  }
+
+  section {
+    margin: 16px 10px;
+    padding: 24px 16px;
+    border-radius: 20px;
+  }
+
+  #toast {
+    left: 14px !important;
+    right: 14px !important;
+    bottom: 14px !important;
+    max-width: none;
+  }
+}
+
+/* Respect Reduce Motion Preference */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
 }
