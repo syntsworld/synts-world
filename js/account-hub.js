@@ -37,35 +37,45 @@
     role: "listener",
     name: "Synts",
     handle: "@synts_official",
-    bio: "Welcome to World of Art",
     upiId: "apex.santosh.2001@yescred"
   };
 
   let activeTab = "OVERVIEW";
   let drawerOpen = false;
 
-  // Clean up header text injections completely so only the original logo icon remains
   function updateBrandHeader() {
-    const allHeaderEls = document.querySelectorAll("header a, header span, header div, .brand, .logo");
-    allHeaderEls.forEach((el) => {
-      const txt = (el.textContent || "").trim();
-      if (/welcome\s*to\s*world\s*of\s*art/i.test(txt) || /everink/i.test(txt)) {
-        // Remove injected banner text elements entirely
-        if (el.children.length === 0) {
-          el.remove();
-        } else {
-          // Keep only the logo symbol badge, clear extra text nodes
-          const icon = el.querySelector(".logo-mark, .brand-mark, svg, img") || el.firstElementChild;
-          if (icon) {
-            el.innerHTML = "";
-            el.appendChild(icon);
-          }
-        }
-      }
-    });
+    // Keep top navigation clean and move a Sign In / Account button to the top right corner
+    let rightAuthBtn = document.getElementById("synts-top-auth-btn");
+    const nav = document.querySelector("header nav, .navbar, header .wrap, header");
+    if (nav && !rightAuthBtn) {
+      rightAuthBtn = document.createElement("button");
+      rightAuthBtn.id = "synts-top-auth-btn";
+      rightAuthBtn.style.cssText = `
+        position: absolute;
+        right: 20px;
+        top: 18px;
+        background: rgba(74, 222, 128, 0.15);
+        color: #4ade80;
+        border: 1px solid rgba(74, 222, 128, 0.4);
+        border-radius: 99px;
+        padding: 6px 14px;
+        font-family: monospace;
+        font-size: 11px;
+        font-weight: 800;
+        cursor: pointer;
+        z-index: 1000;
+      `;
+      rightAuthBtn.innerHTML = `🔐 SIGN IN / PROFILE`;
+      nav.style.position = nav.style.position || "relative";
+      nav.appendChild(rightAuthBtn);
+    }
 
-    if (document.title.toLowerCase().includes("everink")) {
-      document.title = "Synts — World of Art";
+    if (rightAuthBtn) {
+      rightAuthBtn.onclick = () => {
+        drawerOpen = true;
+        activeTab = "SETTINGS";
+        renderSidebar();
+      };
     }
   }
 
@@ -126,16 +136,14 @@
       { id: "OVERVIEW", icon: "⚡", label: "Overview", count: "" },
       ...(isArtist
         ? [
-            { id: "CUSTOMIZE", icon: "🛠️", label: "Builder & Directories", count: totalUploadedFiles },
-            { id: "SETTINGS", icon: "⚙️", label: "Profile & UPI Settings", count: "" }
+            { id: "CUSTOMIZE", icon: "🛠️", label: "Builder & Directories", count: totalUploadedFiles }
           ]
-        : [
-            { id: "SETTINGS", icon: "⚙️", label: "Profile Settings", count: "" }
-          ]),
+        : []),
       { id: "PURCHASES", icon: "🛍️", label: "My Purchases", count: purchases.length },
       { id: "LISTENING", icon: "🎧", label: "Listening History", count: listenHist.length },
       { id: "READING", icon: "📖", label: "Reading History", count: readHist.length },
-      { id: "SAVED", icon: "❤️", label: "Saved Songs", count: savedSongs.length }
+      { id: "SAVED", icon: "❤️", label: "Saved Songs", count: savedSongs.length },
+      { id: "SETTINGS", icon: "⚙️", label: "Profile & UPI Settings", count: "" }
     ];
 
     sidebar.style.cssText = `
@@ -196,9 +204,6 @@
 
     if (activeTab === "OVERVIEW") {
       panelHtml = `
-        <div style="font-size:12px;color:#9ca3af;margin-bottom:12px">
-          Welcome, <strong style="color:#fff">${profile.name}</strong>.
-        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px">
             <div style="font-size:9px;font-family:monospace;color:#9ca3af">PURCHASES</div>
@@ -216,15 +221,7 @@
       panelHtml = `
         <div style="display:flex;flex-direction:column;gap:10px">
           <div style="font-family:monospace;font-size:10px;color:#4ade80;font-weight:800">🛠️ DIRECTORY &amp; PAGE BUILDER</div>
-          <p style="font-size:12px;color:#9ca3af;margin:0">
-            Build your own folder hierarchy, upload lyrics/stems, or jump to the top Directory Builder.
-          </p>
-          <a href="#home" style="background:#4ade80;color:#041208;padding:10px 12px;border-radius:10px;font-family:monospace;font-size:11px;font-weight:800;text-align:center;text-decoration:none">
-            OPEN DIRECTORY BUILDER ↗
-          </a>
-          <a href="#lyrics" style="background:rgba(255,255,255,0.07);color:#fff;padding:10px 12px;border-radius:10px;font-family:monospace;font-size:11px;font-weight:700;text-align:center;text-decoration:none">
-            OPEN NOTEPAD STUDIO ↗
-          </a>
+          <a href="#home" style="background:#4ade80;color:#041208;padding:10px;border-radius:8px;font-family:monospace;font-size:11px;font-weight:800;text-align:center;text-decoration:none">OPEN BUILDER ↗</a>
         </div>
       `;
     }
@@ -254,7 +251,7 @@
           </div>`
             )
             .join("")
-        : `<div style="font-size:12px;color:#64748b">No listening history yet.</div>`;
+        : `<div style="font-size:12px;color:#64748b">No listening history.</div>`;
     }
 
     if (activeTab === "READING") {
@@ -268,7 +265,7 @@
           </div>`
             )
             .join("")
-        : `<div style="font-size:12px;color:#64748b">No reading history yet.</div>`;
+        : `<div style="font-size:12px;color:#64748b">No reading history.</div>`;
     }
 
     if (activeTab === "SAVED") {
@@ -282,18 +279,19 @@
           </div>`
             )
             .join("")
-        : `<div style="font-size:12px;color:#64748b">No saved songs yet.</div>`;
+        : `<div style="font-size:12px;color:#64748b">No saved songs.</div>`;
     }
 
     if (activeTab === "SETTINGS") {
       panelHtml = `
-        <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-family:monospace;font-size:11px;color:#4ade80;font-weight:800">🔐 SIGN IN / ACCOUNT SETTINGS</div>
           <label style="font-size:10px;font-family:monospace;color:#9ca3af">YOUR NAME</label>
           <input type="text" id="prof-name" value="${profile.name}" style="width:100%;font-size:12px;padding:8px" />
           <label style="font-size:10px;font-family:monospace;color:#9ca3af">PAYOUT UPI ID</label>
           <input type="text" id="prof-upi" value="${profile.upiId}" style="width:100%;font-size:12px;padding:8px" />
           <button type="button" id="save-prof-btn" style="background:#4ade80;color:#041208;border:none;border-radius:8px;padding:9px;font-family:monospace;font-size:11px;font-weight:800;cursor:pointer;margin-top:4px">
-            ✓ SAVE SETTINGS
+            ✓ SAVE ACCOUNT
           </button>
         </div>
       `;
@@ -303,8 +301,8 @@
       <div style="padding:14px;border-bottom:1px solid rgba(255,255,255,0.08)">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div>
-            <strong style="font-size:16px;color:#fff;display:block">${profile.name}</strong>
-            <span style="font-size:10px;color:#9ca3af;font-family:monospace">World of Art</span>
+            <strong style="font-size:16px;color:#fff;display:block">World of Art</strong>
+            <span style="font-size:10px;color:#4ade80;font-family:monospace">Studio Hub</span>
           </div>
           <button type="button" id="collapse-dock-btn" style="background:rgba(255,255,255,0.06);color:#9ca3af;border:none;border-radius:7px;width:26px;height:26px;cursor:pointer">❮</button>
         </div>
@@ -368,18 +366,10 @@
         activeTab = "OVERVIEW";
         renderSidebar();
         window.dispatchEvent(new Event("synts-role-changed"));
-        notify(
-          p.role === "artist"
-            ? "Customization Mode enabled! Directory Builder is now unlocked."
-            : "Switched to Explore View."
-        );
+        notify(p.role === "artist" ? "Customization Mode enabled!" : "Switched to Explore View.");
       };
     });
 
-    const saveBtn = sidebar.querySelector("#save-prof-btn");
-    if (save`btn`) {
-      // safe fallback
-    }
     const realSaveBtn = sidebar.querySelector("#save-prof-btn");
     if (realSaveBtn) {
       realSaveBtn.onclick = () => {
@@ -388,7 +378,7 @@
         p.upiId = sidebar.querySelector("#prof-upi").value.trim() || p.upiId;
         setStore(KEYS.PROFILE, p);
         renderSidebar();
-        notify("Profile saved!");
+        notify("Account settings saved!");
       };
     }
   }
