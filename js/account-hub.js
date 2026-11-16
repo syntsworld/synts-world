@@ -41,7 +41,7 @@
   };
 
   let activeTab = "OVERVIEW";
-  let drawerOpen = false; // Kept CLOSED by default so the page stays completely clean!
+  let drawerOpen = false;
   let globalSearchQuery = "";
 
   function cleanHeaderAndNav() {
@@ -50,7 +50,7 @@
 
     const headerNav = document.querySelector("header nav, .navbar, header .wrap, header");
     if (headerNav) {
-      const links = headerNav.querySelectorAll("a, button:not(#synts-top-auth-btn)");
+      const links = headerNav.querySelectorAll("a, button:not(#synts-top-search-btn):not(#synts-top-auth-btn)");
       links.forEach(l => {
         const txt = (l.textContent || "").toLowerCase();
         if (txt.includes("lyrics directory") || txt.includes("write & translate") || txt.includes("licensing")) {
@@ -59,26 +59,33 @@
       });
     }
 
-    // Place Sign In / Profile button cleanly in the top-right corner
-    let rightAuthBtn = document.getElementById("synts-top-auth-btn");
-    if (headerNav && !rightAuthBtn) {
-      rightAuthBtn = document.createElement("button");
-      rightAuthBtn.id = "synts-top-auth-btn";
-      rightAuthBtn.style.cssText = `
-        position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
-        background: rgba(74, 222, 128, 0.15); color: #4ade80;
-        border: 1px solid rgba(74, 222, 128, 0.4); border-radius: 99px;
-        padding: 7px 16px; font-family: monospace; font-size: 11px; font-weight: 800; cursor: pointer; z-index: 1000;
+    // Inject Search Button right into the top navigation bar next to profile/settings
+    let searchBtn = document.getElementById("synts-top-search-btn");
+    if (headerNav && !searchBtn) {
+      searchBtn = document.createElement("button");
+      searchBtn.id = "synts-top-search-btn";
+      searchBtn.title = "Search Songs & Albums";
+      searchBtn.style.cssText = `
+        background: rgba(255, 255, 255, 0.06); color: #cbd5e1;
+        border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 99px;
+        width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center;
+        cursor: pointer; font-size: 14px; margin-right: 8px; transition: all 0.2s ease;
       `;
-      rightAuthBtn.innerHTML = `🔐 SIGN IN / PROFILE`;
-      headerNav.style.position = headerNav.style.position || "relative";
-      headerNav.appendChild(rightAuthBtn);
+      searchBtn.innerHTML = `🔍`;
+      
+      // Find where the right-side buttons are located in the header
+      const rightGroup = headerNav.querySelector(".flex, .nav-right, div:last-child") || headerNav;
+      rightGroup.style.position = rightGroup.style.position || "relative";
+      rightGroup.appendChild(searchBtn);
     }
 
-    if (rightAuthBtn) {
-      rightAuthBtn.onclick = () => {
-        drawerOpen = !drawerOpen; // Toggle open/close from top right
-        activeTab = "SETTINGS";
+    if (searchBtn) {
+      searchBtn.onclick = () => {
+        const query = prompt("🔍 Search songs, albums, EPs or directory files:");
+        if (query === null) return;
+        drawerOpen = true;
+        activeTab = "MARKETPLACE";
+        globalSearchQuery = query.trim();
         renderSidebar();
       };
     }
@@ -348,6 +355,7 @@
     sidebar.querySelectorAll("[data-hub-tab]").forEach((btn) => {
       btn.onclick = () => {
         activeTab = btn.getAttribute("data-hub-tab");
+        drawerOpen = true; // Open sidebar when user clicks a tab
         renderSidebar();
       };
     });
