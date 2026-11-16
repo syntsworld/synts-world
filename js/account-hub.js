@@ -44,12 +44,10 @@
   let drawerOpen = false;
   let globalSearchQuery = "";
 
-  // Completely remove redundant top nav links and keep top header clean
   function cleanHeaderAndNav() {
     const marketSec = document.getElementById("marketplace");
     if (marketSec) marketSec.style.display = "none";
 
-    // Remove old top nav links container (Lyrics Directory, Write & Translate, Licensing)
     const headerNav = document.querySelector("header nav, .navbar, header .wrap, header");
     if (headerNav) {
       const links = headerNav.querySelectorAll("a, button:not(#synts-top-auth-btn)");
@@ -61,7 +59,6 @@
       });
     }
 
-    // Ensure clean sign-in / profile button on top right
     let rightAuthBtn = document.getElementById("synts-top-auth-btn");
     if (headerNav && !rightAuthBtn) {
       rightAuthBtn = document.createElement("button");
@@ -121,24 +118,15 @@
     document.body.classList.toggle("synts-dock-collapsed", !drawerOpen);
 
     const profile = getStore(KEYS.PROFILE, defaultProfile);
-    const isArtist = profile.role === "artist";
     const purchases = getStore(KEYS.PURCHASES, []);
     const listenHist = getStore(KEYS.LISTEN_HIST, []);
     const readHist = getStore(KEYS.READ_HIST, []);
     const savedSongs = getStore(KEYS.SAVED_SONGS, []);
     const customUploads = getStore(KEYS.UPLOADS, []);
-    const treeDirs = getStore(KEYS.TREE, []);
-
-    const totalUploadedFiles =
-      customUploads.length +
-      treeDirs.reduce((acc, c) => acc + (c.subfolders || []).reduce((s, f) => s + (f.files || []).length, 0), 0);
 
     const navItems = [
       { id: "OVERVIEW", icon: "⚡", label: "Overview", count: "" },
       { id: "MARKETPLACE", icon: "🎵", label: "Songs, Albums & Directory", count: "" },
-      ...(isArtist
-        ? [{ id: "CUSTOMIZE", icon: "🛠️", label: "Builder & Directories", count: totalUploadedFiles }]
-        : []),
       { id: "PURCHASES", icon: "🛍️", label: "My Purchases", count: purchases.length },
       { id: "LISTENING", icon: "🎧", label: "Listening History", count: listenHist.length },
       { id: "READING", icon: "📖", label: "Reading History", count: readHist.length },
@@ -196,13 +184,13 @@
     if (activeTab === "OVERVIEW") {
       panelHtml = `
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px">
+          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px">
             <div style="font-size:9px;font-family:monospace;color:#9ca3af">PURCHASES</div>
-            <div style="font-size:20px;font-weight:900;color:#38bdf8">${purchases.length}</div>
+            <div style="font-size:22px;font-weight:900;color:#38bdf8;margin-top:2px">${purchases.length}</div>
           </div>
-          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px">
+          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px">
             <div style="font-size:9px;font-family:monospace;color:#9ca3af">SONGS PLAYED</div>
-            <div style="font-size:20px;font-weight:900;color:#a78bfa">${listenHist.length}</div>
+            <div style="font-size:22px;font-weight:900;color:#a78bfa;margin-top:2px">${listenHist.length}</div>
           </div>
         </div>
       `;
@@ -222,14 +210,14 @@
       );
 
       panelHtml = `
-        <div style="margin-bottom:10px">
-          <input type="text" id="sidebar-song-search" placeholder="🔍 Search song, album, or project..." value="${globalSearchQuery}" style="
-            width:100%;background:#070b12;border:1px solid rgba(74,222,128,0.4);border-radius:9px;padding:8px 10px;color:#fff;font-family:monospace;font-size:11px;
+        <div style="margin-bottom:12px">
+          <input type="text" id="sidebar-song-search" placeholder="🔍 Search songs, albums & directory..." value="${globalSearchQuery}" style="
+            width:100%;background:#070b12;border:1px solid rgba(74,222,128,0.4);border-radius:10px;padding:9px 12px;color:#fff;font-family:monospace;font-size:11px;outline:none;
           " />
         </div>
         <div style="display:flex;flex-direction:column;gap:8px">
           ${filtered.length ? filtered.map(r => `
-            <div style="padding:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.09);border-radius:10px">
+            <div style="padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.09);border-radius:12px">
               <div style="font-size:13px;font-weight:800;color:#fff">${r.title}</div>
               <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
                 <span style="font-size:10px;color:#9ca3af">${r.genre}</span>
@@ -241,23 +229,17 @@
       `;
     }
 
-    if (activeTab === "CUSTOMIZE") {
-      panelHtml = `
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <div style="font-family:monospace;font-size:10px;color:#4ade80;font-weight:800">🛠️ DIRECTORY BUILDER</div>
-          <a href="#home" style="background:#4ade80;color:#041208;padding:10px;border-radius:8px;font-family:monospace;font-size:11px;font-weight:800;text-align:center;text-decoration:none">OPEN BUILDER ↗</a>
-        </div>
-      `;
-    }
-
     if (activeTab === "PURCHASES") {
       panelHtml = purchases.length
         ? purchases
             .map(
               (p) => `
-          <div style="padding:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(74,222,128,0.28);border-radius:10px;margin-bottom:8px">
-            <div style="font-size:12px;font-weight:800;color:#fff">${p.title}</div>
-            <div style="font-size:10px;color:#4ade80;font-family:monospace">${p.price} · ${p.status}</div>
+          <div style="padding:11px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(74,222,128,0.28);border-radius:12px;margin-bottom:8px">
+            <div style="font-size:13px;font-weight:800;color:#fff">${p.title}</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;font-size:10px;font-family:monospace">
+              <span style="color:#9ca3af">${p.status}</span>
+              <strong style="color:#4ade80">${p.price}</strong>
+            </div>
           </div>`
             )
             .join("")
@@ -269,9 +251,9 @@
         ? listenHist
             .map(
               (item) => `
-          <div style="padding:9px 10px;background:rgba(255,255,255,0.03);border-left:3px solid #38bdf8;border-radius:8px;margin-bottom:6px">
-            <div style="font-size:12px;font-weight:700;color:#fff">${item.title}</div>
-            <div style="font-size:10px;color:#9ca3af">${item.time}</div>
+          <div style="padding:10px 12px;background:rgba(255,255,255,0.03);border-left:3px solid #38bdf8;border-radius:10px;margin-bottom:8px">
+            <div style="font-size:13px;font-weight:700;color:#fff">${item.title}</div>
+            <div style="font-size:10px;color:#9ca3af;margin-top:2px">${item.time}</div>
           </div>`
             )
             .join("")
@@ -283,9 +265,9 @@
         ? readHist
             .map(
               (item) => `
-          <div style="padding:9px 10px;background:rgba(255,255,255,0.03);border-left:3px solid #facc15;border-radius:8px;margin-bottom:6px">
-            <div style="font-size:12px;font-weight:700;color:#fff">${item.title}</div>
-            <div style="font-size:10px;color:#9ca3af">${item.time}</div>
+          <div style="padding:10px 12px;background:rgba(255,255,255,0.03);border-left:3px solid #facc15;border-radius:10px;margin-bottom:8px">
+            <div style="font-size:13px;font-weight:700;color:#fff">${item.title}</div>
+            <div style="font-size:10px;color:#9ca3af;margin-top:2px">${item.time}</div>
           </div>`
             )
             .join("")
@@ -297,8 +279,8 @@
         ? savedSongs
             .map(
               (s) => `
-          <div style="padding:9px 10px;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:6px;display:flex;justify-content:space-between">
-            <span style="font-size:12px;color:#fff">${s.title}</span>
+          <div style="padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;color:#fff;font-weight:700">${s.title}</span>
             <span style="font-size:11px;color:#4ade80;font-family:monospace">${s.price}</span>
           </div>`
             )
@@ -309,50 +291,50 @@
     if (activeTab === "SETTINGS") {
       panelHtml = `
         <div style="display:flex;flex-direction:column;gap:10px">
-          <div style="font-family:monospace;font-size:11px;color:#4ade80;font-weight:800">🔐 SIGN IN / ACCOUNT SETTINGS</div>
+          <div style="font-family:monospace;font-size:11px;color:#4ade80;font-weight:800;margin-bottom:2px">⚙️ PROFILE &amp; UPI SETTINGS</div>
           <label style="font-size:10px;font-family:monospace;color:#9ca3af">YOUR NAME</label>
-          <input type="text" id="prof-name" value="${profile.name}" style="width:100%;font-size:12px;padding:8px" />
+          <input type="text" id="prof-name" value="${profile.name}" style="width:100%;font-size:12px;padding:9px;background:#070b12;color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;outline:none" />
           <label style="font-size:10px;font-family:monospace;color:#9ca3af">PAYOUT UPI ID</label>
-          <input type="text" id="prof-upi" value="${profile.upiId}" style="width:100%;font-size:12px;padding:8px" />
-          <button type="button" id="save-prof-btn" style="background:#4ade80;color:#041208;border:none;border-radius:8px;padding:9px;font-family:monospace;font-size:11px;font-weight:800;cursor:pointer;margin-top:4px">
-            ✓ SAVE ACCOUNT
+          <input type="text" id="prof-upi" value="${profile.upiId}" style="width:100%;font-size:12px;padding:9px;background:#070b12;color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;outline:none" />
+          <button type="button" id="save-prof-btn" style="background:#4ade80;color:#041208;border:none;border-radius:9px;padding:10px;font-family:monospace;font-size:11px;font-weight:800;cursor:pointer;margin-top:4px">
+            ✓ SAVE SETTINGS
           </button>
         </div>
       `;
     }
 
     sidebar.innerHTML = `
-      <div style="padding:14px;border-bottom:1px solid rgba(255,255,255,0.08)">
+      <div style="padding:16px;border-bottom:1px solid rgba(255,255,255,0.08)">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div>
-            <strong style="font-size:16px;color:#fff;display:block">Synts</strong>
+            <strong style="font-size:16px;color:#fff;display:block">${profile.name}</strong>
             <span style="font-size:10px;color:#4ade80;font-family:monospace">Studio Hub</span>
           </div>
-          <button type="button" id="collapse-dock-btn" style="background:rgba(255,255,255,0.06);color:#9ca3af;border:none;border-radius:7px;width:26px;height:26px;cursor:pointer">❮</button>
+          <button type="button" id="collapse-dock-btn" style="background:rgba(255,255,255,0.06);color:#9ca3af;border:none;border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:12px">❮</button>
         </div>
       </div>
 
-      <div style="padding:10px 12px;display:flex;flex-direction:column;gap:4px;border-bottom:1px solid rgba(255,255,255,0.08)">
+      <div style="padding:10px 12px;display:flex;flex-direction:column;gap:5px;border-bottom:1px solid rgba(255,255,255,0.08)">
         ${navItems
           .map((item) => {
             const act = activeTab === item.id;
             return `
             <button type="button" data-hub-tab="${item.id}" style="
               display:flex;align-items:center;justify-content:space-between;width:100%;
-              padding:8px 10px;border-radius:9px;cursor:pointer;
+              padding:9px 11px;border-radius:10px;cursor:pointer;
               border:1px solid ${act ? "rgba(74,222,128,0.45)" : "transparent"};
               background:${act ? "rgba(34,197,94,0.16)" : "transparent"};
               color:${act ? "#4ade80" : "#d1d5db"};
               font-family:monospace;font-size:11px;font-weight:700;text-align:left;
             ">
               <span>${item.icon} ${item.label}</span>
-              ${item.count !== "" ? `<span style="font-size:10px;color:#9ca3af">${item.count}</span>` : ""}
+              ${item.count !== "" ? `<span style="font-size:10px;padding:2px 7px;border-radius:99px;background:rgba(255,255,255,0.06);color:#9ca3af">${item.count}</span>` : ""}
             </button>`;
           })
           .join("")}
       </div>
 
-      <div style="flex:1;overflow-y:auto;padding:14px">
+      <div style="flex:1;overflow-y:auto;padding:16px">
         ${panelHtml}
       </div>
     `;
