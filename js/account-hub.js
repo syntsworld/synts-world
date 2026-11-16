@@ -44,33 +44,28 @@
   let activeTab = "OVERVIEW";
   let drawerOpen = false;
 
-  // Replace "SYNTS EVERINK" brand text with "WELCOME TO WORLD OF ART"
+  // Clean up header text injections completely so only the original logo icon remains
   function updateBrandHeader() {
-    const allHeaderEls = document.querySelectorAll("header a, header span, header div, .brand, .logo, footer a, footer span");
+    const allHeaderEls = document.querySelectorAll("header a, header span, header div, .brand, .logo");
     allHeaderEls.forEach((el) => {
-      if (el.children.length === 0 && /everink/i.test(el.textContent || "")) {
-        el.textContent = "WORLD OF ART";
-      } else if (
-        el.children.length <= 2 &&
-        /synts\s*everink/i.test((el.textContent || "").trim())
-      ) {
-        // Keep the 'S' logo icon if present, and replace the text with "WELCOME TO WORLD OF ART"
-        const iconChild = el.querySelector(".logo-mark, .brand-mark, svg, img") || el.firstElementChild;
-        if (iconChild && iconChild.textContent.trim().length <= 2) {
-          const cloneIcon = iconChild.cloneNode(true);
-          el.innerHTML = "";
-          el.appendChild(cloneIcon);
-          const textSpan = document.createElement("span");
-          textSpan.innerHTML = `WELCOME TO <span style="background:linear-gradient(90deg,#4ade80,#facc15,#fb7185);-webkit-background-clip:text;-webkit-text-fill-color:transparent">WORLD OF ART</span>`;
-          textSpan.style.marginLeft = "10px";
-          textSpan.style.fontWeight = "800";
-          el.appendChild(textSpan);
+      const txt = (el.textContent || "").trim();
+      if (/welcome\s*to\s*world\s*of\s*art/i.test(txt) || /everink/i.test(txt)) {
+        // Remove injected banner text elements entirely
+        if (el.children.length === 0) {
+          el.remove();
+        } else {
+          // Keep only the logo symbol badge, clear extra text nodes
+          const icon = el.querySelector(".logo-mark, .brand-mark, svg, img") || el.firstElementChild;
+          if (icon) {
+            el.innerHTML = "";
+            el.appendChild(icon);
+          }
         }
       }
     });
 
     if (document.title.toLowerCase().includes("everink")) {
-      document.title = "Synts — Welcome to World of Art";
+      document.title = "Synts — World of Art";
     }
   }
 
@@ -162,7 +157,6 @@
       text-align: left;
     `;
 
-    // Collapsed 54px Perpendicular Icon Rail
     if (!drawerOpen) {
       sidebar.innerHTML = `
         <div style="display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:10px;height:100%">
@@ -203,7 +197,7 @@
     if (activeTab === "OVERVIEW") {
       panelHtml = `
         <div style="font-size:12px;color:#9ca3af;margin-bottom:12px">
-          Welcome to World of Art, <strong style="color:#fff">${profile.name}</strong>.
+          Welcome, <strong style="color:#fff">${profile.name}</strong>.
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px">
@@ -309,14 +303,12 @@
       <div style="padding:14px;border-bottom:1px solid rgba(255,255,255,0.08)">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div>
-            <!-- ONLY SHOW USER NAME (No Artist/Listener label next to name) -->
             <strong style="font-size:16px;color:#fff;display:block">${profile.name}</strong>
-            <span style="font-size:10px;color:#4ade80;font-family:monospace;letter-spacing:0.04em">Welcome to World of Art</span>
+            <span style="font-size:10px;color:#9ca3af;font-family:monospace">World of Art</span>
           </div>
           <button type="button" id="collapse-dock-btn" style="background:rgba(255,255,255,0.06);color:#9ca3af;border:none;border-radius:7px;width:26px;height:26px;cursor:pointer">❮</button>
         </div>
 
-        <!-- Mode Switcher: Explore vs Customize -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;background:rgba(0,0,0,0.45);padding:4px;border-radius:10px;margin-top:10px">
           <button type="button" data-role-switch="listener" style="
             padding:6px;border-radius:7px;border:none;font-family:monospace;font-size:10px;font-weight:800;cursor:pointer;
@@ -385,8 +377,12 @@
     });
 
     const saveBtn = sidebar.querySelector("#save-prof-btn");
-    if (saveBtn) {
-      saveBtn.onclick = () => {
+    if (save`btn`) {
+      // safe fallback
+    }
+    const realSaveBtn = sidebar.querySelector("#save-prof-btn");
+    if (realSaveBtn) {
+      realSaveBtn.onclick = () => {
         const p = getStore(KEYS.PROFILE, defaultProfile);
         p.name = sidebar.querySelector("#prof-name").value.trim() || p.name;
         p.upiId = sidebar.querySelector("#prof-upi").value.trim() || p.upiId;
