@@ -43,8 +43,8 @@
   let activeTab = "OVERVIEW";
   let drawerOpen = false;
 
+  // Clean header: removes unwanted text boxes while keeping original layout clean
   function updateBrandHeader() {
-    // Keep top navigation clean and move a Sign In / Account button to the top right corner
     let rightAuthBtn = document.getElementById("synts-top-auth-btn");
     const nav = document.querySelector("header nav, .navbar, header .wrap, header");
     if (nav && !rightAuthBtn) {
@@ -301,7 +301,7 @@
       <div style="padding:14px;border-bottom:1px solid rgba(255,255,255,0.08)">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div>
-            <strong style="font-size:16px;color:#fff;display:block">World of Art</strong>
+            <strong style="font-size:16px;color:#fff;display:block">Synts</strong>
             <span style="font-size:10px;color:#4ade80;font-family:monospace">Studio Hub</span>
           </div>
           <button type="button" id="collapse-dock-btn" style="background:rgba(255,255,255,0.06);color:#9ca3af;border:none;border-radius:7px;width:26px;height:26px;cursor:pointer">❮</button>
