@@ -1,227 +1,29 @@
 /* ==========================================================================
-   SYNTS WORLD — POETIC EDITORIAL & LUXURY STUDIO TYPOGRAPHY SYSTEM
+   SYNTS STUDIO — SLEEK PREMIUM UI ENHANCEMENTS
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap');
-
-:root,
-html,
-html[data-theme="dark"] {
-  --font-poetic: "Cormorant Garamond", "Playfair Display", Georgia, serif !important;
-  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif !important;
-  --font-mono: "JetBrains Mono", monospace !important;
-
-  --bg: #06080c !important;
-  --bg-elev: #0b0f17 !important;
-  --bg-card: rgba(15, 20, 28, 0.9) !important;
-  --text: #f5f3ef !important; /* Warm parchment ivory for easy poetic reading */
-  --muted: #9ca3af !important;
-  --border: rgba(74, 222, 128, 0.22) !important;
-  --accent: #4ade80 !important;
+#lyrics .panel,
+#synts-ai-assistant-panel,
+.tr-output,
+.notepad {
+  background: linear-gradient(165deg, rgba(14, 19, 28, 0.96), rgba(8, 11, 17, 0.99)) !important;
+  border: 1px solid rgba(74, 222, 128, 0.28) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75) !important;
 }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-}
-
-/* 1. Base Studio Canvas & Clean UI Font */
-html,
-body {
-  margin: 0 !important;
-  padding: 0 !important;
-  background-color: #06080c !important;
-  background-image:
-    radial-gradient(circle at 18% 10%, rgba(74, 222, 128, 0.13), transparent 38%),
-    radial-gradient(circle at 84% 12%, rgba(250, 204, 21, 0.07), transparent 36%),
-    linear-gradient(to right, rgba(255, 255, 255, 0.022) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.022) 1px, transparent 1px) !important;
-  background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px !important;
-  background-attachment: fixed !important;
-  color: var(--text) !important;
-  font-family: var(--font-sans) !important;
-  letter-spacing: -0.01em;
-  line-height: 1.65;
-  overflow-x: hidden !important;
-}
-
-/* 2. Poetic Literary Serif for All Headings, Song Titles & Editorial Titles */
-h1,
-h2,
-h3,
-.title,
-.card-title,
-#insp-title,
-#synts-writing-hub h2,
-#synts-releases-hub h2,
-#synts-writing-hub h3,
-#synts-releases-hub h3 {
-  font-family: var(--font-poetic) !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.01em !important;
-  line-height: 1.15 !important;
-  color: #faf8f5 !important;
-}
-
-h1 {
-  font-size: clamp(2.6rem, 5vw, 4.4rem) !important;
-  font-style: italic;
-}
-
-h2 {
-  font-size: clamp(1.95rem, 3.6vw, 2.85rem) !important;
-}
-
-h3 {
-  font-size: clamp(1.35rem, 2.2vw, 1.65rem) !important;
-}
-
-/* 3. Poetic Lyric Sheets, Shayari Previews & Notepad Writing Area */
-textarea,
-#lyrics textarea,
-#lyrics-text {
-  width: 100% !important;
-  min-height: 320px !important;
-  background-color: #070a0f !important;
-  background-image: linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px) !important;
-  background-size: 100% 34px !important;
-  color: #faf7f0 !important;
-  border: 1px solid rgba(74, 222, 128, 0.32) !important;
-  border-radius: 18px !important;
-  padding: 22px 26px !important;
-  font-family: var(--font-poetic) !important;
-  font-size: 1.32rem !important;
-  font-weight: 500 !important;
-  line-height: 34px !important;
-  letter-spacing: 0.015em !important;
-  box-shadow: inset 0 6px 24px rgba(0, 0, 0, 0.85) !important;
-}
-
-/* Lyric & Poetry Preview Boxes inside Cards */
-pre,
-#insp-snippet,
-[data-locked-lyrics],
-#writing-cards-grid pre {
-  font-family: var(--font-poetic) !important;
-  font-size: 1.14rem !important;
-  font-style: italic !important;
-  font-weight: 500 !important;
-  line-height: 1.65 !important;
-  letter-spacing: 0.015em !important;
-  color: #f1ede4 !important;
-}
-
-/* Keep Technical Badges, File Paths & Prices in Crisp Studio Monospace */
-.eyebrow,
-.dir-tab,
-.rel-pill,
-#synts-tree-body,
-code {
-  font-family: var(--font-mono) !important;
-}
-
-/* 4. Floating Glass Top Navigation Bar */
-header,
-nav,
-.navbar,
-.site-header {
-  position: sticky !important;
-  top: 12px !important;
-  z-index: 999 !important;
-  max-width: 1260px !important;
-  margin: 12px auto 0 !important;
-  padding: 12px 22px !important;
-  background: rgba(10, 14, 22, 0.84) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  border: 1px solid rgba(74, 222, 128, 0.25) !important;
-  border-radius: 18px !important;
-  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.72) !important;
-}
-
-/* 5. Framed Web-App Sections & Cards */
-section,
-.hero,
-#lyrics,
-#marketplace,
-#projects,
-#studio {
-  position: relative !important;
-  max-width: 1260px !important;
-  margin: 26px auto !important;
-  padding: 34px 28px !important;
-  background: linear-gradient(170deg, rgba(14, 19, 28, 0.92), rgba(8, 11, 17, 0.96)) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-top: 1px solid rgba(74, 222, 128, 0.35) !important;
-  border-radius: 26px !important;
-  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.82) !important;
-}
-
-article,
-.card,
-.step-card,
-.market-card,
-.project-card,
-.synts-custom-market-card,
-#writing-cards-grid > div,
-#synts-releases-grid > div {
-  background: linear-gradient(160deg, rgba(19, 26, 37, 0.95), rgba(10, 14, 21, 0.98)) !important;
-  border: 1px solid rgba(255, 255, 255, 0.09) !important;
-  border-radius: 18px !important;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65) !important;
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
-}
-
-article:hover,
-.card:hover,
-.market-card:hover,
-.project-card:hover,
-.synts-custom-market-card:hover,
-#writing-cards-grid > div:hover,
-#synts-releases-grid > div:hover {
-  transform: translateY(-4px) !important;
-  border-color: rgba(74, 222, 128, 0.5) !important;
-  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.85), 0 0 26px rgba(74, 222, 128, 0.18) !important;
-}
-
-input,
-select {
-  background: #070b12 !important;
-  color: #f8fafc !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
-  border-radius: 12px !important;
-  padding: 10px 14px !important;
-  font-family: var(--font-sans) !important;
-}
-
-button,
-.btn,
-a.btn {
-  font-family: var(--font-sans) !important;
-  border-radius: 11px !important;
-  font-weight: 700 !important;
-  transition: all 0.18s ease !important;
-}
-
-#toast {
-  position: fixed !important;
-  bottom: 24px !important;
-  right: 24px !important;
-  z-index: 100000 !important;
-  background: rgba(11, 16, 24, 0.96) !important;
-  color: #f8fafc !important;
-  border: 1px solid rgba(74, 222, 128, 0.45) !important;
-  border-left: 4px solid #4ade80 !important;
+textarea#lyrics-text,
+textarea#tr-input {
+  background-color: #06090f !important;
+  border: 1px solid rgba(74, 222, 128, 0.3) !important;
   border-radius: 14px !important;
-  padding: 14px 20px !important;
-  font-family: var(--font-sans) !important;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85) !important;
+  padding: 18px !important;
+  color: #f8fafc !important;
+  font-family: "JetBrains Mono", monospace !important;
 }
 
-.hidden {
-  display: none !important;
+textarea#lyrics-text:focus,
+textarea#tr-input:focus {
+  border-color: #4ade80 !important;
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2) !important;
 }
