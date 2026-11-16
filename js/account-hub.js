@@ -42,15 +42,12 @@
 
   let activeTab = "OVERVIEW";
   let drawerOpen = false;
+  let globalSearchQuery = "";
 
-  // Hide the messy marketplace section from the main page and host it in the sidebar menu
   function cleanAndMoveMarketplace() {
     const marketSec = document.getElementById("marketplace");
-    if (marketSec) {
-      marketSec.style.display = "none"; // Hide from main scroll
-    }
+    if (marketSec) marketSec.style.display = "none";
 
-    // Top Right Sign In / Profile button
     let rightAuthBtn = document.getElementById("synts-top-auth-btn");
     const nav = document.querySelector("header nav, .navbar, header .wrap, header");
     if (nav && !rightAuthBtn) {
@@ -125,7 +122,7 @@
 
     const navItems = [
       { id: "OVERVIEW", icon: "⚡", label: "Overview", count: "" },
-      { id: "MARKETPLACE", icon: "🎵", label: "Projects & Lyric Directory", count: "" },
+      { id: "MARKETPLACE", icon: "🎵", label: "Songs, Albums & Directory", count: "" },
       ...(isArtist
         ? [{ id: "CUSTOMIZE", icon: "🛠️", label: "Builder & Directories", count: totalUploadedFiles }]
         : []),
@@ -199,27 +196,34 @@
     }
 
     if (activeTab === "MARKETPLACE") {
-      const releases = window.__syntsReleases || [
+      const allReleases = [
         { title: "Musafir (Urdu Drill Lyrics)", genre: "Hip-Hop / Drill", price: "₹499" },
         { title: "Mukhtalif (Lo-Fi Verse & Hook)", genre: "Lo-Fi / Bilingual", price: "₹399" },
-        { title: "After Hours (5-Song Pack)", genre: "Full Pack", price: "₹1,499" }
+        { title: "After Hours (5-Song Pack)", genre: "Full Pack", price: "₹1,499" },
+        ...customUploads.map(c => ({ title: c.title, genre: "Custom Upload", price: c.price ? "₹" + c.price : "₹499" }))
       ];
 
+      const filtered = allReleases.filter(r => 
+        (r.title || "").toLowerCase().includes(globalSearchQuery.toLowerCase()) ||
+        (r.genre || "").toLowerCase().includes(globalSearchQuery.toLowerCase())
+      );
+
       panelHtml = `
-        <div style="font-family:monospace;font-size:11px;color:#4ade80;font-weight:800;margin-bottom:8px">🎵 PROJECTS &amp; LYRIC LICENSES</div>
+        <div style="margin-bottom:10px">
+          <input type="text" id="sidebar-song-search" placeholder="🔍 Search song, album, or project..." value="${globalSearchQuery}" style="
+            width:100%;background:#070b12;border:1px solid rgba(74,222,128,0.4);border-radius:9px;padding:8px 10px;color:#fff;font-family:monospace;font-size:11px;
+          " />
+        </div>
         <div style="display:flex;flex-direction:column;gap:8px">
-          ${releases
-            .map(
-              (r) => `
+          ${filtered.length ? filtered.map(r => `
             <div style="padding:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.09);border-radius:10px">
-              <div style="font-size:13px;font-weight:800;color:#fff">${r.title || r.song_title}</div>
+              <div style="font-size:13px;font-weight:800;color:#fff">${r.title}</div>
               <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
-                <span style="font-size:10px;color:#9ca3af">${r.genre || "Original Lyrics"}</span>
-                <strong style="font-size:12px;color:#4ade80">${r.price_inr ? "₹" + r.price_inr : r.price}</strong>
+                <span style="font-size:10px;color:#9ca3af">${r.genre}</span>
+                <strong style="font-size:12px;color:#4ade80">${r.price}</strong>
               </div>
-            </div>`
-            )
-            .join("")}
+            </div>
+          `).join("") : `<div style="font-size:12px;color:#64748b">No matching songs or albums found.</div>`}
         </div>
       `;
     }
@@ -351,6 +355,20 @@
         renderSidebar();
       };
     });
+
+    const searchInput = sidebar.querySelector("#sidebar-song-search");
+    if (searchInput) {
+      searchInput.oninput = (e) => {
+        globalSearchQuery = e.target.value;
+        renderSidebar();
+        // Keep focus back on the input so typing isn't interrupted
+        const newInp = sidebar.querySelector("#sidebar-song-search");
+        if (newInp) {
+          newInp.focus();
+          newInp.selectionStart = newInp.selectionEnd = newInp.value.length;
+        }
+      };
+    }
 
     const realSaveBtn = sidebar.querySelector("#save-prof-btn");
     if (realSaveBtn) {
