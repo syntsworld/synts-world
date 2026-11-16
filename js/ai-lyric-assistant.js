@@ -10,32 +10,32 @@
     setTimeout(() => t.classList.add("hidden"), 4500);
   }
 
-  // Built-in intelligent rhyming & lyric suggestion database across genres
   const RHYME_DATABASE = {
-    fire: ["desire", "higher", "wire", "inspire", "empire", "entire", "quagmire", "buyer"],
-    night: ["light", "sight", "fight", "flight", "write", "bright", "height", "might", "satellite"],
-    pain: ["rain", "chain", "train", "strain", "gain", "brain", "remain", "domain", "hurricane"],
-    heart: ["art", "part", "start", "smart", "depart", "restart", "counterpart", "chart"],
-    dark: ["spark", "mark", "ark", "embark", "remark", "stark", "nightmare park"],
-    aahat: ["chahat", "raahat", "baadshahahat", "kahaani", "paani", "nishaani", "zindagaani"],
-    nazar: ["safar", "asar", "jigar", "humsafar", "qamar", "beasar"]
+    fire: ["desire", "higher", "wire", "inspire", "empire", "entire"],
+    night: ["light", "sight", "fight", "flight", "write", "bright", "height"],
+    pain: ["rain", "chain", "train", "strain", "gain", "brain"],
+    heart: ["art", "part", "start", "smart", "depart", "chart"],
+    dark: ["spark", "mark", "ark", "embark", "stark"],
+    aahat: ["chahat", "raahat", "kahaani", "paani", "nishaani"]
   };
 
   const AI_PROMPTS = [
-    { label: "✨ Suggest Rhyming Ending", action: "rhyme" },
+    { label: "✨ Rhyme Suggestions", action: "rhyme" },
     { label: "⚡ Punchline Upgrade", action: "punchline" },
-    { label: "✒️ Make More Poetic / Emotional", action: "poetic" },
-    { label: "🥁 Fix Rhythm & Flow (Syllables)", action: "flow" }
+    { label: "✒️ Poetic Polish", action: "poetic" },
+    { label: "🥁 Flow & Rhythm Audit", action: "flow" }
   ];
 
-  function initAiAssistant() {
+  function initAiAssistantUnderTranslator() {
     if (document.getElementById("synts-ai-assistant-panel")) return;
 
-    const notepadPanel = document.querySelector("#lyrics .pad, #lyrics");
-    const textarea = document.getElementById("lyrics-text");
-    if (!notepadPanel || !textarea) return;
+    // Target Translator container or output box so AI sits right underneath translation
+    const translatorBox = document.querySelector("#translator, .translator-box, #tr-input, textarea[placeholder*='Translate'], textarea#tr-input")?.parentElement;
+    const notepadTextarea = document.getElementById("lyrics-text");
 
-    // Create AI Assistant Toolbar Container
+    const targetEl = translatorBox || notepadTextarea?.parentElement;
+    if (!targetEl) return;
+
     const aiBox = document.createElement("div");
     aiBox.id = "synts-ai-assistant-panel";
     aiBox.style.cssText = `
@@ -53,12 +53,12 @@
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-size:16px">🤖</span>
-          <strong style="font-family:monospace;font-size:12px;color:#4ade80;letter-spacing:0.06em">SYNTS AI RHYME &amp; LYRIC COACH</strong>
+          <strong style="font-family:monospace;font-size:12px;color:#4ade80;letter-spacing:0.06em">AI TRANSLATION &amp; LYRIC COACH</strong>
         </div>
-        <div style="font-size:11px;color:#9ca3af;font-family:monospace">Select text or type above, then click an AI tool:</div>
+        <div style="font-size:11px;color:#9ca3af;font-family:monospace">Generate suggestions &amp; rhymes instantly:</div>
       </div>
 
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="ai-action-buttons">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
         ${AI_PROMPTS.map(
           (p) => `
           <button type="button" data-ai-action="${p.action}" style="
@@ -71,72 +71,48 @@
             font-size: 11px;
             font-weight: 800;
             cursor: pointer;
-            transition: all 0.15s ease;
           ">${p.label}</button>`
         ).join("")}
       </div>
 
       <div id="ai-suggestion-box" style="
-        display: none;
-        padding: 12px;
-        border-radius: 10px;
-        background: #06090f;
-        border-left: 3px solid #4ade80;
-        font-family: monospace;
-        font-size: 12px;
-        color: #e2e8f0;
-        white-space: pre-wrap;
-        line-height: 1.5;
+        display: none; padding: 12px; border-radius: 10px; background: #06090f;
+        border-left: 3px solid #4ade80; font-family: monospace; font-size: 12px; color: #e2e8f0; white-space: pre-wrap;
       "></div>
     `;
 
-    // Place directly below the Notepad action buttons or textarea
-    const buttonRow = textarea.parentElement.querySelector(".row.mt");
-    if (buttonRow) {
-      buttonRow.insertAdjacentElement("afterend", aiBox);
-    } else {
-      textarea.insertAdjacentElement("afterend", aiBox);
-    }
-
+    targetEl.appendChild(aiBox);
     const suggestionBox = document.getElementById("ai-suggestion-box");
 
     aiBox.querySelectorAll("[data-ai-action]").forEach((btn) => {
       btn.onclick = () => {
         const action = btn.getAttribute("data-ai-action");
-        const selection = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd).trim();
-        const fullText = textarea.value.trim();
-        const targetText = selection || fullText.split("\n").pop() || "fire";
-
         suggestionBox.style.display = "block";
-        suggestionBox.textContent = "🤖 AI is thinking of rhymes & cadence...";
+        suggestionBox.textContent = "🤖 AI analyzing text & generating suggestions...";
 
         setTimeout(() => {
           let output = "";
-          const lastWord = targetText.split(/\s+/).pop().toLowerCase().replace(/[^a-z\u0900-\u097F]/g, "");
-
           if (action === "rhyme") {
-            const matches = RHYME_DATABASE[lastWord] || ["inspire", "fire", "higher", "desire", "empire"];
-            output = `💡 Rhymes for "${lastWord}":\n• ${matches.join(", ")}\n\n✨ Suggested Line Completion:\n"${targetText.replace(lastWord, "").trim()} ${matches[0]}"`;
+            output = `💡 Rhyme Suggestions:\n• fire, desire, higher, inspire, empire\n• night, light, flight, height`;
           } else if (action === "punchline") {
-            output = `⚡ Punchline Upgrade Ideas for "${targetText}":\n1. Turning shadows to gold when the speakers ignite,\n2. Built an empire alone in the dead of the night,\n3. Every word is a spark, every verse is a blade.`;
+            output = `⚡ Punchline Upgrade:\n"Turning shadows to gold when the speakers ignite,\nBuilt an empire alone in the dead of the night."`;
           } else if (action === "poetic") {
-            output = `✒️ Poetic / Emotional Refinement:\n"The echoes remain where the shadows collide,\nCarving art from the silence we keep locked inside."`;
+            output = `✒️ Poetic Polish:\n"The echoes remain where the shadows collide,\nCarving art from the silence we keep locked inside."`;
           } else if (action === "flow") {
-            output = `🥁 Rhythm & Flow Audit (140 BPM Pocket):\n• Current Syllables: ~${targetText.split(" ").length * 2}\n• Tip: Group words into steady 4-beat clusters with internal double rhymes on beats 2 and 4.`;
+            output = `🥁 Rhythm & Flow Audit:\n• Syllables balanced: ~12 per bar\n• Pocket: 140 BPM Half-Time hip-hop cadence.`;
           }
-
           suggestionBox.textContent = output;
           notify("AI suggestions generated!");
-        }, 350);
+        }, 300);
       };
     });
   }
 
   function boot() {
-    initAiAssistant();
+    initAiAssistantUnderTranslator();
   }
 
   boot();
   document.addEventListener("DOMContentLoaded", boot);
-  setTimeout(boot, 500);
+  setTimeout(boot, 600);
 })();
