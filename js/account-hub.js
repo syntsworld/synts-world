@@ -44,13 +44,26 @@
   let drawerOpen = false;
   let globalSearchQuery = "";
 
-  function cleanAndMoveMarketplace() {
+  // Completely remove redundant top nav links and keep top header clean
+  function cleanHeaderAndNav() {
     const marketSec = document.getElementById("marketplace");
     if (marketSec) marketSec.style.display = "none";
 
+    // Remove old top nav links container (Lyrics Directory, Write & Translate, Licensing)
+    const headerNav = document.querySelector("header nav, .navbar, header .wrap, header");
+    if (headerNav) {
+      const links = headerNav.querySelectorAll("a, button:not(#synts-top-auth-btn)");
+      links.forEach(l => {
+        const txt = (l.textContent || "").toLowerCase();
+        if (txt.includes("lyrics directory") || txt.includes("write & translate") || txt.includes("licensing")) {
+          l.remove();
+        }
+      });
+    }
+
+    // Ensure clean sign-in / profile button on top right
     let rightAuthBtn = document.getElementById("synts-top-auth-btn");
-    const nav = document.querySelector("header nav, .navbar, header .wrap, header");
-    if (nav && !rightAuthBtn) {
+    if (headerNav && !rightAuthBtn) {
       rightAuthBtn = document.createElement("button");
       rightAuthBtn.id = "synts-top-auth-btn";
       rightAuthBtn.style.cssText = `
@@ -60,8 +73,8 @@
         padding: 6px 14px; font-family: monospace; font-size: 11px; font-weight: 800; cursor: pointer; z-index: 1000;
       `;
       rightAuthBtn.innerHTML = `🔐 SIGN IN / PROFILE`;
-      nav.style.position = nav.style.position || "relative";
-      nav.appendChild(rightAuthBtn);
+      headerNav.style.position = headerNav.style.position || "relative";
+      headerNav.appendChild(rightAuthBtn);
     }
 
     if (rightAuthBtn) {
@@ -361,7 +374,6 @@
       searchInput.oninput = (e) => {
         globalSearchQuery = e.target.value;
         renderSidebar();
-        // Keep focus back on the input so typing isn't interrupted
         const newInp = sidebar.querySelector("#sidebar-song-search");
         if (newInp) {
           newInp.focus();
@@ -384,7 +396,7 @@
   }
 
   function init() {
-    cleanAndMoveMarketplace();
+    cleanHeaderAndNav();
     injectSidebarStyles();
     buildLeftSidebar();
   }
