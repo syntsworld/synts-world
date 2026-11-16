@@ -41,7 +41,7 @@
   };
 
   let activeTab = "OVERVIEW";
-  let drawerOpen = false;
+  let drawerOpen = false; // Kept CLOSED by default so the page stays completely clean!
   let globalSearchQuery = "";
 
   function cleanHeaderAndNav() {
@@ -59,15 +59,16 @@
       });
     }
 
+    // Place Sign In / Profile button cleanly in the top-right corner
     let rightAuthBtn = document.getElementById("synts-top-auth-btn");
     if (headerNav && !rightAuthBtn) {
       rightAuthBtn = document.createElement("button");
       rightAuthBtn.id = "synts-top-auth-btn";
       rightAuthBtn.style.cssText = `
-        position: absolute; right: 20px; top: 18px;
+        position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
         background: rgba(74, 222, 128, 0.15); color: #4ade80;
         border: 1px solid rgba(74, 222, 128, 0.4); border-radius: 99px;
-        padding: 6px 14px; font-family: monospace; font-size: 11px; font-weight: 800; cursor: pointer; z-index: 1000;
+        padding: 7px 16px; font-family: monospace; font-size: 11px; font-weight: 800; cursor: pointer; z-index: 1000;
       `;
       rightAuthBtn.innerHTML = `🔐 SIGN IN / PROFILE`;
       headerNav.style.position = headerNav.style.position || "relative";
@@ -76,7 +77,7 @@
 
     if (rightAuthBtn) {
       rightAuthBtn.onclick = () => {
-        drawerOpen = true;
+        drawerOpen = !drawerOpen; // Toggle open/close from top right
         activeTab = "SETTINGS";
         renderSidebar();
       };
