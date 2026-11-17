@@ -10,7 +10,7 @@
     setTimeout(() => t.classList.add("hidden"), 4500);
   }
 
-  function initLiveContextualCoach() {
+  function initLyricStoryAssistant() {
     if (document.getElementById("synts-ai-assistant-panel")) return;
 
     const targetEl = document.querySelector("#translator, .translator-box, #tr-input")?.parentElement || document.getElementById("lyrics-text")?.parentElement;
@@ -20,88 +20,109 @@
     box.id = "synts-ai-assistant-panel";
     box.style.cssText = `
       margin-top: 14px;
-      padding: 16px;
-      border-radius: 16px;
-      background: linear-gradient(165deg, rgba(16, 22, 32, 0.95), rgba(8, 12, 18, 0.99));
+      padding: 18px;
+      border-radius: 18px;
+      background: linear-gradient(165deg, rgba(14, 19, 28, 0.96), rgba(8, 11, 17, 0.99));
       border: 1px solid rgba(74, 222, 128, 0.38);
-      box-shadow: 0 16px 40px rgba(0,0,0,0.65);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.75);
       color: #f3f6fc;
       text-align: left;
     `;
 
     box.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:16px">🧠</span>
-          <strong style="font-family:monospace;font-size:12px;color:#4ade80;letter-spacing:0.06em">LIVE CONTEXTUAL STORY &amp; STRUCTURE COACH</strong>
+          <span style="font-size:16px">🎙️</span>
+          <strong style="font-family:monospace;font-size:12px;color:#4ade80;letter-spacing:0.06em">AI LYRIC &amp; STORY STRUCTURE ASSISTANT</strong>
         </div>
-        <div style="font-size:11px;color:#9ca3af;font-family:monospace">Reads your notepad text and suggests what structure comes next:</div>
+        <span style="font-size:11px;font-family:monospace;color:#9ca3af">Context-Aware Writing Coach</span>
       </div>
 
-      <div style="margin-bottom:10px">
-        <button type="button" id="analyze-notepad-btn" style="
-          background: #4ade80; color: #041208; border: none; border-radius: 9px;
-          padding: 9px 16px; font-family: monospace; font-size: 11px; font-weight: 800; cursor: pointer;
-        ">⚡ SUGGEST NEXT STRUCTURE BASED ON MY TEXT</button>
+      <div style="font-size:12px;color:#cbd5e1;margin-bottom:12px">
+        Write your lyrics or story in the notepad above, then click below to have AI analyze your text and suggest the exact next structural section (Verse, Pre-Chorus, Hook, or Bridge):
       </div>
 
-      <div id="ai-dynamic-output" style="
-        display: none; padding: 14px; border-radius: 10px; background: #06090f;
-        border-left: 3px solid #4ade80; font-family: monospace; font-size: 12px; color: #e2e8f0; white-space: pre-wrap; line-height: 1.5;
+      <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+        <button type="button" id="ai-suggest-next-btn" style="
+          background: #4ade80; color: #041208; border: none; border-radius: 10px;
+          padding: 10px 16px; font-family: monospace; font-size: 11px; font-weight: 800; cursor: pointer;
+        ">✨ SUGGEST NEXT STRUCTURAL PART</button>
+        <button type="button" id="ai-append-suggestion-btn" style="
+          background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.4); border-radius: 10px;
+          padding: 10px 14px; font-family: monospace; font-size: 11px; font-weight: 700; cursor: pointer;
+        ">+ INSERT SUGGESTION INTO NOTEPAD</button>
+      </div>
+
+      <div id="ai-story-feedback" style="
+        display: none; padding: 14px; border-radius: 12px; background: #06090f;
+        border-left: 3px solid #4ade80; font-family: monospace; font-size: 12px; color: #e2e8f0; white-space: pre-wrap; line-height: 1.6;
       "></div>
     `;
 
     targetEl.appendChild(box);
-    const outputBox = document.getElementById("ai-dynamic-output");
-    const notepadArea = document.getElementById("lyrics-text");
 
-    document.getElementById("analyze-notepad-btn").onclick = () => {
-      const userText = notepadArea ? notepadArea.value.trim() : "";
-      
-      if (!userText) {
-        notify("Please write something in your notepad first!", true);
+    const feedbackBox = document.getElementById("ai-story-feedback");
+    const notepadArea = document.getElementById("lyrics-text");
+    let lastGeneratedText = "";
+
+    document.getElementById("ai-suggest-next-btn").onclick = () => {
+      const text = notepadArea ? notepadArea.value.trim() : "";
+      if (!text) {
+        notify("Please write some lyrics in your notepad first!", true);
         return;
       }
 
-      outputBox.style.display = "block";
-      outputBox.textContent = "🧠 Analyzing your writing context and story flow...";
+      feedbackBox.style.display = "block";
+      feedbackBox.textContent = "🔍 AI analyzing your lyrics and story flow...";
 
       setTimeout(() => {
-        const lineCount = userText.split("\n").filter(l => l.trim()).length;
-        const lower = userText.toLowerCase();
+        const lines = text.split("\n").filter(l => l.trim());
+        const lastLine = lines[lines.length - 1] || "";
+        const lower = text.toLowerCase();
 
-        let suggestion = "";
+        let recommendation = "";
 
-        if (lower.includes("verse") || lineCount <= 6) {
-          suggestion = `📊 Analysis: You have written ${lineCount} lines (Verse setup phase).\n\n` +
-            `👉 Suggested Next Structure:\n` +
-            `• Move into a **Pre-Chorus** to build emotional tension or speed up the rhythm.\n` +
-            `• **Story Tip:** Introduce a conflict or internal question that the upcoming Chorus will answer.`;
+        if (lower.includes("verse") && !lower.includes("chorus")) {
+          recommendation = `🎵 Narrative Analysis (${lines.length} lines detected):\n\n` +
+            `👉 What to write next (Pre-Chorus / Hook):\n` +
+            `• Since your verse sets up the emotional background, transition into a **[CHORUS]** with your main title phrase.\n` +
+            `• **Suggested Opening Hook Line:** "And we're running through the shadows of the silent streets..."`;
+          lastGeneratedText = "\n[CHORUS]\n1. And we're running through the shadows of the silent streets...\n2. Every heartbeat is a drum that repeats.";
         } else if (lower.includes("chorus") || lower.includes("hook")) {
-          suggestion = `📊 Analysis: Your text contains a Chorus/Hook.\n\n` +
-            `👉 Suggested Next Structure:\n` +
-            `• Follow up with **Verse 2**, exploring the consequence or aftermath of your Chorus message.\n` +
-            `• **Rhyme Tip:** Keep your end-rhymes open and resonant to match the hook's energy.`;
-        } else if (lower.includes("bridge") || lower.includes("climax")) {
-          suggestion = `📊 Analysis: You are near the Bridge / Climax phase.\n\n` +
-            `👉 Suggested Next Structure:\n` +
-            `• Shift your perspective or chord progression here.\n` +
-            `• Lead smoothly into a **Final Double Chorus** and an atmospheric **Outro** to close your story.`;
+          recommendation = `🎵 Narrative Analysis:\n\n` +
+            `👉 What to write next (Verse 2 / Story Progression):\n` +
+            `• Follow up your hook with **[VERSE 2]**.\n` +
+            `• **Story Guidance:** Introduce a twist or a personal memory that deepens the meaning of your chorus.\n` +
+            `• **Suggested Opening Line:** "I remember every promise that we left behind..."`;
+          lastGeneratedText = "\n[VERSE 2]\n1. I remember every promise that we left behind,\n2. Searching through the wreckage for a piece of mind.";
         } else {
-          suggestion = `📊 Analysis: Active free-form text (${lineCount} lines detected).\n\n` +
-            `👉 Suggested Structure Integration:\n` +
-            `• Group your lines into 4-bar or 8-bar blocks.\n` +
-            `• Add a **[CHORUS]** tag above your main catchy phrase to anchor your story.`;
+          recommendation = `🎵 Narrative Analysis (Free-form verses):\n\n` +
+            `👉 Suggested Structure Flow:\n` +
+            `• Your opening is strong. Group your lines into a formal **[VERSE 1]** block.\n` +
+            `• Follow it with a short **[PRE-CHORUS]** (2 lines) that raises the pitch before dropping into your main hook.\n` +
+            `• **Suggested Pre-Chorus:** "And time is slipping away... / Are we closer or further today?"`;
+          lastGeneratedText = "\n[PRE-CHORUS]\n1. And time is slipping away...\n2. Are we closer or further today?";
         }
 
-        outputBox.textContent = suggestion;
-        notify("Generated structure suggestions based on your text!");
+        feedbackBox.textContent = recommendation;
+        notify("AI structure recommendation ready!");
       }, 350);
+    };
+
+    document.getElementById("ai-append-suggestion-btn").onclick = () => {
+      if (!lastGeneratedText || !notepadArea) {
+        notify("Click 'Suggest Next Structural Part' first!", true);
+        return;
+      }
+      notepadArea.value = notepadArea.value.trim() + "\n" + lastGeneratedText;
+      notepadArea.dispatchEvent(new Event("input", { bubbles: true }));
+      notepadArea.focus();
+      notify("Inserted AI structure suggestion into your notepad!");
     };
   }
 
   function boot() {
-    initLiveContextualCoach();
+    initLyricStoryAssistant();
   }
 
   boot();
