@@ -27,3 +27,24 @@ textarea#tr-input:focus {
   border-color: #4ade80 !important;
   box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2) !important;
 }
+/* ==========================================================================
+   FIX PARAGRAPH & TEXT ALIGNMENT LAYOUT
+   ========================================================================== */
+
+p, span, div, pre, textarea {
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+#synts-ai-assistant-panel,
+#ai-chatbot-messages,
+.notepad,
+#lyrics textarea {
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+}
+
+#ai-chatbot-messages div {
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+}
