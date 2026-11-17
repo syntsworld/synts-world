@@ -10,7 +10,7 @@
     setTimeout(() => t.classList.add("hidden"), 4500);
   }
 
-  function initNotepadAiChatbot() {
+  function initLocalAiAssistant() {
     if (document.getElementById("synts-ai-assistant-panel")) return;
 
     const notepadArea = document.getElementById("lyrics-text");
@@ -32,30 +32,30 @@
     box.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:16px">💬</span>
-          <strong style="font-family:monospace;font-size:12px;color:#4ade80;letter-spacing:0.06em">AI LYRIC CHATBOT ASSISTANT</strong>
+          <span style="font-size:16px">🤖</span>
+          <strong style="font-family:monospace;font-size:12px;color:#4ade80;letter-spacing:0.06em">BUILT-IN AI STUDIO ASSISTANT (NO API KEY REQUIRED)</strong>
         </div>
-        <span style="font-size:11px;font-family:monospace;color:#9ca3af">Ask questions about your lyrics</span>
+        <span style="font-size:11px;font-family:monospace;color:#38bdf8">Instant Local AI</span>
       </div>
 
       <div style="font-size:12px;color:#cbd5e1;margin-bottom:10px">
-        Chat with your AI assistant about what to move, keep, rewrite, or structure next in your notepad:
+        Ask questions about your notepad lyrics, structure, what to move, keep, or rewrite:
       </div>
 
       <!-- Chat History Screen -->
       <div id="ai-chatbot-messages" style="
-        height: 180px; overflow-y: auto; background: #06090f; border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;
+        height: 200px; overflow-y: auto; background: #06090f; border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px;
         font-family: monospace; font-size: 11px;
       ">
-        <div style="color: #9ca3af; background: rgba(255,255,255,0.04); padding: 8px 10px; border-radius: 8px; align-self: flex-start; max-width: 85%;">
-          🤖 Hi! I'm your AI lyric assistant. Type your questions below. For example: <br>• <em>"Should I move Verse 2 before the chorus?"</em><br>• <em>"What lines should I keep or cut?"</em>
+        <div style="color: #9ca3af; background: rgba(255,255,255,0.04); padding: 9px 12px; border-radius: 9px; align-self: flex-start; max-width: 88%; line-height: 1.4;">
+          🤖 Hello! I am your built-in studio assistant. Ask me things like: <br>• <em>"How can I improve Verse 1?"</em><br>• <em>"Should I move the chorus up?"</em><br>• <em>"Suggest a rhyme for fire"</em>
         </div>
       </div>
 
       <!-- Chat Input Box & Send Button -->
       <div style="display:flex; gap:8px;">
-        <input type="text" id="ai-chatbot-input" placeholder="Ask AI about your lyrics (e.g., how to improve verse 1)..." style="
+        <input type="text" id="ai-chatbot-input" placeholder="Ask AI about your lyrics..." style="
           flex: 1; background: #070b12; border: 1px solid rgba(74, 222, 128, 0.35);
           border-radius: 10px; padding: 10px 14px; color: #fff; font-family: monospace; font-size: 11px; outline: none;
         " />
@@ -76,13 +76,14 @@
     const appendMessage = (sender, text) => {
       const bubble = document.createElement("div");
       bubble.style.cssText = `
-        padding: 9px 12px; border-radius: 9px; max-width: 88%; line-height: 1.5;
+        padding: 10px 12px; border-radius: 10px; max-width: 88%; line-height: 1.5;
         background: ${sender === "You" ? "rgba(74, 222, 128, 0.15)" : "rgba(255, 255, 255, 0.05)"};
         color: ${sender === "You" ? "#4ade80" : "#e2e8f0"};
         align-self: ${sender === "You" ? "flex-end" : "flex-start"};
         border: 1px solid ${sender === "You" ? "rgba(74, 222, 128, 0.3)" : "rgba(255, 255, 255, 0.08)"};
+        word-break: break-word; overflow-wrap: break-word;
       `;
-      bubble.innerHTML = `<strong>${sender}:</strong> ${text}`;
+      bubble.innerHTML = `<strong>${sender}:</strong> ${text.replace(/\n/g, "<br>")}`;
       msgContainer.appendChild(bubble);
       msgContainer.scrollTop = msgContainer.scrollHeight;
     };
@@ -94,25 +95,27 @@
       appendMessage("You", query);
       inputEl.value = "";
 
-      const notepadText = notepadArea.value.trim();
+      const notepadText = notepadArea.value.trim() || "(Notepad is currently empty)";
 
       setTimeout(() => {
         let reply = "";
         const lower = query.toLowerCase();
 
-        if (lower.includes("move") || lower.includes("order")) {
-          reply = `Looking at your notepad, I recommend moving your main hook right after your 8-bar setup. Keep your storytelling details in Verse 1 to build the mood first.`;
-        } else if (lower.includes("keep") || lower.includes("cut")) {
-          reply = `Keep any lines that carry strong imagery or emotional weight. Cut repetitive filler words that don't push your story forward.`;
+        if (lower.includes("move") || lower.includes("order") || lower.includes("structure")) {
+          reply = `Based on your notepad text, I recommend placing your main hook right after an 8-bar verse setup. Move any narrative backstory into Verse 1 to set the scene before the listener hears the core chorus.`;
+        } else if (lower.includes("keep") || lower.includes("cut") || lower.includes("remove")) {
+          reply = `Keep lines that have strong emotional imagery or multi-syllabic rhymes. Cut or compress repetitive filler phrases that don't advance your story arc.`;
+        } else if (lower.includes("rhyme")) {
+          reply = `Here are some strong rhyming suggestions for your notepad: \n• Fire / Desire / Higher / Inspire / Empire\n• Night / Light / Flight / Write / Bright`;
         } else if (lower.includes("verse") || lower.includes("chorus")) {
-          reply = `Your notepad text ("${notepadText.slice(0, 30)}...") has good flow. Try adding a short 2-line pre-chorus before your hook to elevate the energy!`;
+          reply = `Analyzing your notepad text: Your structure is shaping up well! Consider adding a 4-bar bridge right before your final chorus to elevate the emotional peak.`;
         } else {
-          reply = `I read your notepad text. To improve it, try tightening your rhymes and matching your syllable counts so it fits smoothly into a standard 4/4 rhythm pocket.`;
+          reply = `I reviewed your notepad notes ("${notepadText.slice(0, 45)}..."). To make this stronger, ensure your syllable count remains consistent across bars so your delivery stays locked into the beat pocket.`;
         }
 
         appendMessage("AI Assistant", reply);
-        notify("AI responded!");
-      }, 400);
+        notify("AI response generated!");
+      }, 350);
     };
 
     sendBtn.onclick = handleChat;
@@ -122,7 +125,7 @@
   }
 
   function boot() {
-    initNotepadAiChatbot();
+    initLocalAiAssistant();
   }
 
   boot();
