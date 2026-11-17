@@ -10,10 +10,9 @@
     setTimeout(() => t.classList.add("hidden"), 4500);
   }
 
-  function initNotepadLyricAssistant() {
+  function initNotepadAiChatbot() {
     if (document.getElementById("synts-ai-assistant-panel")) return;
 
-    // Attach precisely right below the Notepad textarea
     const notepadArea = document.getElementById("lyrics-text");
     if (!notepadArea) return;
 
@@ -33,97 +32,97 @@
     box.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:16px">🎙️</span>
-          <strong style="font-family:monospace;font-size:12px;color:#4ade80;letter-spacing:0.06em">AI LYRIC &amp; STORY STRUCTURE ASSISTANT</strong>
+          <span style="font-size:16px">💬</span>
+          <strong style="font-family:monospace;font-size:12px;color:#4ade80;letter-spacing:0.06em">AI LYRIC CHATBOT ASSISTANT</strong>
         </div>
-        <span style="font-size:11px;font-family:monospace;color:#9ca3af">Connected to Notepad</span>
+        <span style="font-size:11px;font-family:monospace;color:#9ca3af">Ask questions about your lyrics</span>
       </div>
 
-      <div style="font-size:12px;color:#cbd5e1;margin-bottom:12px">
-        Type your lyrics in the notepad above, then click below to have AI analyze your text and suggest the exact next structural section (Verse, Pre-Chorus, Hook, or Bridge):
+      <div style="font-size:12px;color:#cbd5e1;margin-bottom:10px">
+        Chat with your AI assistant about what to move, keep, rewrite, or structure next in your notepad:
       </div>
 
-      <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
-        <button type="button" id="ai-suggest-next-btn" style="
+      <!-- Chat History Screen -->
+      <div id="ai-chatbot-messages" style="
+        height: 180px; overflow-y: auto; background: #06090f; border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;
+        font-family: monospace; font-size: 11px;
+      ">
+        <div style="color: #9ca3af; background: rgba(255,255,255,0.04); padding: 8px 10px; border-radius: 8px; align-self: flex-start; max-width: 85%;">
+          🤖 Hi! I'm your AI lyric assistant. Type your questions below. For example: <br>• <em>"Should I move Verse 2 before the chorus?"</em><br>• <em>"What lines should I keep or cut?"</em>
+        </div>
+      </div>
+
+      <!-- Chat Input Box & Send Button -->
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="ai-chatbot-input" placeholder="Ask AI about your lyrics (e.g., how to improve verse 1)..." style="
+          flex: 1; background: #070b12; border: 1px solid rgba(74, 222, 128, 0.35);
+          border-radius: 10px; padding: 10px 14px; color: #fff; font-family: monospace; font-size: 11px; outline: none;
+        " />
+        <button type="button" id="ai-chatbot-send-btn" style="
           background: #4ade80; color: #041208; border: none; border-radius: 10px;
-          padding: 10px 16px; font-family: monospace; font-size: 11px; font-weight: 800; cursor: pointer;
-        ">✨ SUGGEST NEXT STRUCTURAL PART</button>
-        <button type="button" id="ai-append-suggestion-btn" style="
-          background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.4); border-radius: 10px;
-          padding: 10px 14px; font-family: monospace; font-size: 11px; font-weight: 700; cursor: pointer;
-        ">+ INSERT SUGGESTION INTO NOTEPAD</button>
+          padding: 10px 18px; font-family: monospace; font-size: 11px; font-weight: 800; cursor: pointer;
+        ">SEND</button>
       </div>
-
-      <div id="ai-story-feedback" style="
-        display: none; padding: 14px; border-radius: 12px; background: #06090f;
-        border-left: 3px solid #4ade80; font-family: monospace; font-size: 12px; color: #e2e8f0; white-space: pre-wrap; line-height: 1.6;
-      "></div>
     `;
 
-    // Insert precisely after the notepad container or textarea parent
     const notepadContainer = notepadArea.closest(".pad, .panel, div") || notepadArea.parentElement;
     notepadContainer.insertAdjacentElement("afterend", box);
 
-    const feedbackBox = document.getElementById("ai-story-feedback");
-    let lastGeneratedText = "";
+    const msgContainer = document.getElementById("ai-chatbot-messages");
+    const inputEl = document.getElementById("ai-chatbot-input");
+    const sendBtn = document.getElementById("ai-chatbot-send-btn");
 
-    document.getElementById("ai-suggest-next-btn").onclick = () => {
-      const text = notepadArea.value.trim();
-      if (!text) {
-        notify("Please write some lyrics in your notepad first!", true);
-        return;
-      }
-
-      feedbackBox.style.display = "block";
-      feedbackBox.textContent = "🔍 AI analyzing your notepad lyrics and story flow...";
-
-      setTimeout(() => {
-        const lines = text.split("\n").filter(l => l.trim());
-        const lower = text.toLowerCase();
-
-        let recommendation = "";
-
-        if (lower.includes("verse") && !lower.includes("chorus")) {
-          recommendation = `🎵 Narrative Analysis (${lines.length} lines detected in Notepad):\n\n` +
-            `👉 What to write next (Pre-Chorus / Hook):\n` +
-            `• Since your verse sets up the background, transition into a **[CHORUS]** with your main title phrase.\n` +
-            `• **Suggested Opening Hook Line:** "And we're running through the shadows of the silent streets..."`;
-          lastGeneratedText = "\n[CHORUS]\n1. And we're running through the shadows of the silent streets...\n2. Every heartbeat is a drum that repeats.";
-        } else if (lower.includes("chorus") || lower.includes("hook")) {
-          recommendation = `🎵 Narrative Analysis (Hook detected):\n\n` +
-            `👉 What to write next (Verse 2 / Story Progression):\n` +
-            `• Follow up your hook with **[VERSE 2]**.\n` +
-            `• **Story Guidance:** Introduce a twist or a personal memory that deepens the meaning of your chorus.\n` +
-            `• **Suggested Opening Line:** "I remember every promise that we left behind..."`;
-          lastGeneratedText = "\n[VERSE 2]\n1. I remember every promise that we left behind,\n2. Searching through the wreckage for a piece of mind.";
-        } else {
-          recommendation = `🎵 Narrative Analysis (Free-form text detected):\n\n` +
-            `👉 Suggested Structure Flow:\n` +
-            `• Your opening is strong. Group your lines into a formal **[VERSE 1]** block.\n` +
-            `• Follow it with a short **[PRE-CHORUS]** (2 lines) that raises the pitch before dropping into your main hook.\n` +
-            `• **Suggested Pre-Chorus:** "And time is slipping away... / Are we closer or further today?"`;
-          lastGeneratedText = "\n[PRE-CHORUS]\n1. And time is slipping away...\n2. Are we closer or further today?";
-        }
-
-        feedbackBox.textContent = recommendation;
-        notify("AI structure recommendation ready!");
-      }, 350);
+    const appendMessage = (sender, text) => {
+      const bubble = document.createElement("div");
+      bubble.style.cssText = `
+        padding: 9px 12px; border-radius: 9px; max-width: 88%; line-height: 1.5;
+        background: ${sender === "You" ? "rgba(74, 222, 128, 0.15)" : "rgba(255, 255, 255, 0.05)"};
+        color: ${sender === "You" ? "#4ade80" : "#e2e8f0"};
+        align-self: ${sender === "You" ? "flex-end" : "flex-start"};
+        border: 1px solid ${sender === "You" ? "rgba(74, 222, 128, 0.3)" : "rgba(255, 255, 255, 0.08)"};
+      `;
+      bubble.innerHTML = `<strong>${sender}:</strong> ${text}`;
+      msgContainer.appendChild(bubble);
+      msgContainer.scrollTop = msgContainer.scrollHeight;
     };
 
-    document.getElementById("ai-append-suggestion-btn").onclick = () => {
-      if (!lastGeneratedText) {
-        notify("Click 'Suggest Next Structural Part' first!", true);
-        return;
-      }
-      notepadArea.value = notepadArea.value.trim() + "\n" + lastGeneratedText;
-      notepadArea.dispatchEvent(new Event("input", { bubbles: true }));
-      notepadArea.focus();
-      notify("Inserted AI suggestion into your notepad!");
+    const handleChat = () => {
+      const query = inputEl.value.trim();
+      if (!query) return;
+
+      appendMessage("You", query);
+      inputEl.value = "";
+
+      const notepadText = notepadArea.value.trim();
+
+      setTimeout(() => {
+        let reply = "";
+        const lower = query.toLowerCase();
+
+        if (lower.includes("move") || lower.includes("order")) {
+          reply = `Looking at your notepad, I recommend moving your main hook right after your 8-bar setup. Keep your storytelling details in Verse 1 to build the mood first.`;
+        } else if (lower.includes("keep") || lower.includes("cut")) {
+          reply = `Keep any lines that carry strong imagery or emotional weight. Cut repetitive filler words that don't push your story forward.`;
+        } else if (lower.includes("verse") || lower.includes("chorus")) {
+          reply = `Your notepad text ("${notepadText.slice(0, 30)}...") has good flow. Try adding a short 2-line pre-chorus before your hook to elevate the energy!`;
+        } else {
+          reply = `I read your notepad text. To improve it, try tightening your rhymes and matching your syllable counts so it fits smoothly into a standard 4/4 rhythm pocket.`;
+        }
+
+        appendMessage("AI Assistant", reply);
+        notify("AI responded!");
+      }, 400);
+    };
+
+    sendBtn.onclick = handleChat;
+    inputEl.onkeydown = (e) => {
+      if (e.key === "Enter") handleChat();
     };
   }
 
   function boot() {
-    initNotepadLyricAssistant();
+    initNotepadAiChatbot();
   }
 
   boot();
