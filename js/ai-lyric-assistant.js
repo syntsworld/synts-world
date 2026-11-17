@@ -10,17 +10,9 @@
     setTimeout(() => t.classList.add("hidden"), 4500);
   }
 
-  const STORY_BLUEPRINTS = [
-    { label: "🎵 Standard Song Structure (Verse - Chorus - Bridge)", type: "song", content: "[VERSE 1 - Setting the Scene & Story]\n1. \n2. \n\n[PRE-CHORUS - Rising Tension]\n1. \n\n[CHORUS - Core Hook / Message]\n1. \n2. \n\n[VERSE 2 - Continuing the Story]\n1. \n\n[BRIDGE - Emotional Shift]\n1. \n\n[OUTRO - Resolution]" },
-    { label: "🎤 Rap / Hip-Hop 16-Bar Story Arc", type: "rap", content: "[INTRO - Ambient Setup / 4 Bars]\n\n[VERSE 1 - The Inciting Incident / 16 Bars]\n1. \n2. \n3. \n4. \n\n[HOOK - Chorus Hook / 8 Bars]\n\n[VERSE 2 - The Climax & Consequence / 16 Bars]\n\n[OUTRO - Final Word]" },
-    { label: "📖 Concept Story / Lore Narrative", type: "lore", content: "[ACT I: THE WORLD & SETTING]\n(Establish the mood, character, and central conflict)\n\n[ACT II: THE TURNING POINT]\n(What changes the character's path forever?)\n\n[ACT III: THE RESOLUTION / CLIMAX]\n(Emotional realization or final punchline)" },
-    { label: "✒️ Urdu / Hindi Gazal (Matla & Shers)", type: "gazal", content: "[MATLA - Opening Couplet (Both lines rhyme)]\nMisra 1: \nMisra 2: \n\n[SHER 01 - Developing the Theme]\nMisra 1: \nMisra 2: \n\n[MAQTA - Closing Signature (Include pen name)]\nMisra 1: \nMisra 2: " }
-  ];
-
-  function initSongStructureAssistant() {
+  function initLiveContextualCoach() {
     if (document.getElementById("synts-ai-assistant-panel")) return;
 
-    // Place right below the translator or notepad area
     const targetEl = document.querySelector("#translator, .translator-box, #tr-input")?.parentElement || document.getElementById("lyrics-text")?.parentElement;
     if (!targetEl) return;
 
@@ -40,62 +32,76 @@
     box.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
         <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:16px">📐</span>
-          <strong style="font-family:monospace;font-size:12px;color:#4ade80;letter-spacing:0.06em">SONG STRUCTURE &amp; STORYTELLING BLUEPRINTS</strong>
+          <span style="font-size:16px">🧠</span>
+          <strong style="font-family:monospace;font-size:12px;color:#4ade80;letter-spacing:0.06em">LIVE CONTEXTUAL STORY &amp; STRUCTURE COACH</strong>
         </div>
-        <div style="font-size:11px;color:#9ca3af;font-family:monospace">Click a structure to insert into your workspace:</div>
+        <div style="font-size:11px;color:#9ca3af;font-family:monospace">Reads your notepad text and suggests what structure comes next:</div>
       </div>
 
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
-        ${STORY_BLUEPRINTS.map(
-          (b, idx) => `
-          <button type="button" data-blueprint-idx="${idx}" style="
-            background: rgba(74, 222, 128, 0.12);
-            color: #4ade80;
-            border: 1px solid rgba(74, 222, 128, 0.35);
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-family: monospace;
-            font-size: 11px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: all 0.15s ease;
-          ">${b.label}</button>`
-        ).join("")}
+      <div style="margin-bottom:10px">
+        <button type="button" id="analyze-notepad-btn" style="
+          background: #4ade80; color: #041208; border: none; border-radius: 9px;
+          padding: 9px 16px; font-family: monospace; font-size: 11px; font-weight: 800; cursor: pointer;
+        ">⚡ SUGGEST NEXT STRUCTURE BASED ON MY TEXT</button>
       </div>
 
-      <div id="blueprint-preview-box" style="
-        display: none; padding: 12px; border-radius: 10px; background: #06090f;
-        border-left: 3px solid #4ade80; font-family: monospace; font-size: 12px; color: #e2e8f0; white-space: pre-wrap;
+      <div id="ai-dynamic-output" style="
+        display: none; padding: 14px; border-radius: 10px; background: #06090f;
+        border-left: 3px solid #4ade80; font-family: monospace; font-size: 12px; color: #e2e8f0; white-space: pre-wrap; line-height: 1.5;
       "></div>
     `;
 
     targetEl.appendChild(box);
-    const previewBox = document.getElementById("blueprint-preview-box");
+    const outputBox = document.getElementById("ai-dynamic-output");
     const notepadArea = document.getElementById("lyrics-text");
 
-    box.querySelectorAll("[data-blueprint-idx]").forEach((btn) => {
-      btn.onclick = () => {
-        const idx = Number(btn.getAttribute("data-blueprint-idx"));
-        const blueprint = STORY_BLUEPRINTS[idx];
+    document.getElementById("analyze-notepad-btn").onclick = () => {
+      const userText = notepadArea ? notepadArea.value.trim() : "";
+      
+      if (!userText) {
+        notify("Please write something in your notepad first!", true);
+        return;
+      }
 
-        previewBox.style.display = "block";
-        previewBox.textContent = `📝 Loaded Blueprint:\n\n${blueprint.content}`;
+      outputBox.style.display = "block";
+      outputBox.textContent = "🧠 Analyzing your writing context and story flow...";
 
-        if (notepadArea) {
-          const current = notepadArea.value.trim();
-          notepadArea.value = current ? `${current}\n\n${blueprint.content}` : blueprint.content;
-          notepadArea.dispatchEvent(new Event("input", { bubbles: true }));
-          notepadArea.focus();
+      setTimeout(() => {
+        const lineCount = userText.split("\n").filter(l => l.trim()).length;
+        const lower = userText.toLowerCase();
+
+        let suggestion = "";
+
+        if (lower.includes("verse") || lineCount <= 6) {
+          suggestion = `📊 Analysis: You have written ${lineCount} lines (Verse setup phase).\n\n` +
+            `👉 Suggested Next Structure:\n` +
+            `• Move into a **Pre-Chorus** to build emotional tension or speed up the rhythm.\n` +
+            `• **Story Tip:** Introduce a conflict or internal question that the upcoming Chorus will answer.`;
+        } else if (lower.includes("chorus") || lower.includes("hook")) {
+          suggestion = `📊 Analysis: Your text contains a Chorus/Hook.\n\n` +
+            `👉 Suggested Next Structure:\n` +
+            `• Follow up with **Verse 2**, exploring the consequence or aftermath of your Chorus message.\n` +
+            `• **Rhyme Tip:** Keep your end-rhymes open and resonant to match the hook's energy.`;
+        } else if (lower.includes("bridge") || lower.includes("climax")) {
+          suggestion = `📊 Analysis: You are near the Bridge / Climax phase.\n\n` +
+            `👉 Suggested Next Structure:\n` +
+            `• Shift your perspective or chord progression here.\n` +
+            `• Lead smoothly into a **Final Double Chorus** and an atmospheric **Outro** to close your story.`;
+        } else {
+          suggestion = `📊 Analysis: Active free-form text (${lineCount} lines detected).\n\n` +
+            `👉 Suggested Structure Integration:\n` +
+            `• Group your lines into 4-bar or 8-bar blocks.\n` +
+            `• Add a **[CHORUS]** tag above your main catchy phrase to anchor your story.`;
         }
 
-        notify(`Loaded "${blueprint.label}" into your workspace!`);
-      };
-    });
+        outputBox.textContent = suggestion;
+        notify("Generated structure suggestions based on your text!");
+      }, 350);
+    };
   }
 
   function boot() {
-    initSongStructureAssistant();
+    initLiveContextualCoach();
   }
 
   boot();
