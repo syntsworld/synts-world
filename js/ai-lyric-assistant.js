@@ -10,7 +10,144 @@
     setTimeout(() => t.classList.add("hidden"), 4500);
   }
 
-  function initLocalAiAssistant() {
+  // Phonetic ending & word rhyme map (English + Hinglish/Urdu-style endings)
+  const ENDING_RHYMES = {
+    ight: ["night", "light", "sight", "fight", "flight", "bright", "height", "write", "tonight"],
+    ire: ["fire", "desire", "higher", "wire", "inspire", "empire", "entire", "tire"],
+    ain: ["rain", "pain", "chain", "train", "strain", "brain", "remain", "again", "domain"],
+    art: ["heart", "art", "part", "start", "smart", "apart", "chart", "depart"],
+    ark: ["dark", "spark", "mark", "bark", "stark", "embark", "remark"],
+    all: ["fall", "call", "wall", "hall", "small", "tall", "crawl", "recall"],
+    ay: ["day", "way", "stay", "play", "say", "away", "grey", "delay", "pray"],
+    ime: ["time", "rhyme", "crime", "climb", "prime", "sublime", "dime"],
+    o: ["go", "flow", "slow", "know", "show", "glow", "below", "shadow", "echo"],
+    ar: ["safar", "nazar", "asar", "jigar", "humsafar", "star", "far", "scar", "war"],
+    aat: ["raat", "baat", "saath", "haath", "aahat", "chahat", "raahat", "barsaat"],
+    aan: ["jaan", "shaan", "maan", "pehchan", "armaan", "toofan", "aasmaan", "dastaan"]
+  };
+
+  const COMMON_WORD_RHYMES = {
+    fire: ENDING_RHYMES.ire,
+    night: ENDING_RHYMES.ight,
+    light: ENDING_RHYMES.ight,
+    rain: ENDING_RHYMES.ain,
+    pain: ENDING_RHYMES.ain,
+    heart: ENDING_RHYMES.art,
+    dark: ENDING_RHYMES.ark,
+    time: ENDING_RHYMES.ime,
+    flow: ENDING_RHYMES.o,
+    raat: ENDING_RHYMES.aat,
+    baat: ENDING_RHYMES.aat,
+    safar: ENDING_RHYMES.ar,
+    nazar: ENDING_RHYMES.ar,
+    jaan: ENDING_RHYMES.aan
+  };
+
+  function cleanWord(raw) {
+    return (raw || "")
+      .toLowerCase()
+      .replace(/[^a-z\u0900-\u097f\u0600-\u06ff]/g, "");
+  }
+
+  function findRhymesForWord(word) {
+    const w = cleanWord(word);
+    if (!w) return [];
+
+    if (COMMON_WORD_RHYMES[w]) {
+      return COMMON_WORD_RHYMES[w].filter((r) => r !== w);
+    }
+
+    const suffixOrder = ["ight", "ire", "ain", "art", "ark", "all", "ime", "aat", "aan", "ay", "ar", "o"];
+    for (const suf of suffixOrder) {
+      if (w.endsWith(suf) && w.length > suf.length) {
+        return ENDING_RHYMES[suf].filter((r) => r !== w);
+      }
+    }
+
+    if (w.length >= 3) {
+      const tail2 = w.slice(-2);
+      const tail3 = w.slice(-3);
+      const dynamic = [];
+      Object.values(ENDING_RHYMES).forEach((list) => {
+        list.forEach((candidate) => {
+          if (candidate !== w && (candidate.endsWith(tail3) || candidate.endsWith(tail2))) {
+            if (!dynamic.includes(candidate)) dynamic.push(candidate);
+          }
+        });
+      });
+      if (dynamic.length) return dynamic.slice(0, 8);
+    }
+
+    return ["night", "light", "flow", "time", "fire", "stay"];
+  }
+
+  function getActiveLineAndWord(textarea) {
+    const full = textarea.value || "";
+    const pos = typeof textarea.selectionStart === "number" ? textarea.selectionStart : full.length;
+    const beforeCursor = full.slice(0, pos);
+    const lines = beforeCursor.split("\n");
+    let currentLine = (lines[lines.length - 1] || "").trim();
+
+    if (!currentLine) {
+      const nonEmpty = full
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean);
+      currentLine = nonEmpty[nonEmpty.length - 1] || "";
+    }
+
+    const words = currentLine.split(/\s+/).filter(Boolean);
+    const lastWord = words[words.length - 1] || "";
+    return { currentLine, lastWord, lineCount: full.split("\n").filter((l) => l.trim()).length };
+  }
+
+  function buildSongStructureFromLyrics(text) {
+    const lines = text
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
+
+    const hasVerse = /\[?\s*verse/i.test(text);
+    const hasChorus = /\[?\s*chorus|\[?\s*hook/i.test(text);
+    const hasBridge = /\[?\s*bridge/i.test(text);
+
+    const firstHookCandidate =
+      lines.find((l) => !l.startsWith("[") && l.split(/\s+/).length <= 10) ||
+      "Keep your strongest emotional line as the anchor";
+
+    let nextBlockLabel = "[CHORUS / HOOK]";
+    let nextPrompt =
+      "Distill your opening imagery into a repeatable hook line (6–9 words) that states the core emotion.";
+
+    if (hasVerse && !hasChorus) {
+      nextBlockLabel = "[PRE-CHORUS -> CHORUS]";
+      nextPrompt =
+        "Write 2 rising lines that build tension toward your main hook, then drop your Chorus.";
+    } else if (hasChorus && !hasBridge && lines.length >= 10) {
+      nextBlockLabel = "[VERSE 2 -> BRIDGE]";
+      nextPrompt =
+        "Shift the perspective or timeline in Verse 2, then use a short Bridge to break the pattern before the final Chorus.";
+    } else if (hasBridge) {
+      nextBlockLabel = "[FINAL CHORUS + OUTRO]";
+      nextPrompt =
+        "Bring back your main Chorus with full energy, then taper off with 1–2 quiet lines for the Outro.";
+    } else if (lines.length >= 6) {
+      nextBlockLabel = "[CHORUS]";
+      nextPrompt =
+        "You have a solid verse block—lock in your Chorus now so the song has a clear payoff.";
+    }
+
+    const suggestedOutline = [
+      `• Detected: ${lines.length} lyric lines | Verse: ${hasVerse ? "Yes" : "Implicit"} | Chorus: ${hasChorus ? "Yes" : "Not marked"} | Bridge: ${hasBridge ? "Yes" : "Not marked"}`,
+      `• Hook Anchor Idea: "${firstHookCandidate}"`,
+      `• Next Section to Write: ${nextBlockLabel} — ${nextPrompt}`
+    ].join("\n");
+
+    const draftSnippet = `${nextBlockLabel}\n${firstHookCandidate} — `;
+    return { suggestedOutline, draftSnippet };
+  }
+
+  function initLyricRhymeAndStructureEngine() {
     if (document.getElementById("synts-ai-assistant-panel")) return;
 
     const notepadArea = document.getElementById("lyrics-text");
@@ -19,113 +156,142 @@
     const box = document.createElement("div");
     box.id = "synts-ai-assistant-panel";
     box.style.cssText = `
-      margin-top: 16px;
-      padding: 18px;
-      border-radius: 18px;
+      margin-top: 14px;
+      padding: 16px;
+      border-radius: 16px;
       background: linear-gradient(165deg, rgba(14, 19, 28, 0.96), rgba(8, 11, 17, 0.99));
-      border: 1px solid rgba(74, 222, 128, 0.38);
-      box-shadow: 0 20px 50px rgba(0,0,0,0.75);
+      border: 1px solid rgba(74, 222, 128, 0.35);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
       color: #f3f6fc;
       text-align: left;
     `;
 
     box.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:16px">🤖</span>
-          <strong style="font-family:monospace;font-size:12px;color:#4ade80;letter-spacing:0.06em">BUILT-IN AI STUDIO ASSISTANT (NO API KEY REQUIRED)</strong>
-        </div>
-        <span style="font-size:11px;font-family:monospace;color:#38bdf8">Instant Local AI</span>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        <strong style="font-family:monospace;font-size:12px;color:#4ade80;letter-spacing:0.05em">
+          🎵 RHYME &amp; SONG STRUCTURE ENGINE
+        </strong>
+        <span id="rhyme-target-badge" style="font-family:monospace;font-size:11px;color:#9ca3af">
+          Type in notepad to rhyme &amp; structure
+        </span>
       </div>
 
-      <div style="font-size:12px;color:#cbd5e1;margin-bottom:10px">
-        Ask questions about your notepad lyrics, structure, what to move, keep, or rewrite:
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <button type="button" id="btn-suggest-rhymes" style="
+          background:#4ade80;color:#041208;border:none;border-radius:9px;
+          padding:8px 14px;font-family:monospace;font-size:11px;font-weight:800;cursor:pointer;
+        ">✨ SUGGEST RHYMES</button>
+        <button type="button" id="btn-structure-song" style="
+          background:rgba(56,189,248,0.14);color:#38bdf8;border:1px solid rgba(56,189,248,0.4);
+          border-radius:9px;padding:8px 14px;font-family:monospace;font-size:11px;font-weight:800;cursor:pointer;
+        ">📐 STRUCTURE FROM LYRICS</button>
+        <button type="button" id="btn-insert-next-part" style="
+          background:rgba(74,222,128,0.12);color:#4ade80;border:1px solid rgba(74,222,128,0.35);
+          border-radius:9px;padding:8px 12px;font-family:monospace;font-size:11px;font-weight:700;cursor:pointer;
+        ">+ ADD NEXT SECTION</button>
       </div>
 
-      <!-- Chat History Screen -->
-      <div id="ai-chatbot-messages" style="
-        height: 200px; overflow-y: auto; background: #06090f; border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px;
-        font-family: monospace; font-size: 11px;
-      ">
-        <div style="color: #9ca3af; background: rgba(255,255,255,0.04); padding: 9px 12px; border-radius: 9px; align-self: flex-start; max-width: 88%; line-height: 1.4;">
-          🤖 Hello! I am your built-in studio assistant. Ask me things like: <br>• <em>"How can I improve Verse 1?"</em><br>• <em>"Should I move the chorus up?"</em><br>• <em>"Suggest a rhyme for fire"</em>
-        </div>
-      </div>
+      <div id="rhyme-chips-row" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>
 
-      <!-- Chat Input Box & Send Button -->
-      <div style="display:flex; gap:8px;">
-        <input type="text" id="ai-chatbot-input" placeholder="Ask AI about your lyrics..." style="
-          flex: 1; background: #070b12; border: 1px solid rgba(74, 222, 128, 0.35);
-          border-radius: 10px; padding: 10px 14px; color: #fff; font-family: monospace; font-size: 11px; outline: none;
-        " />
-        <button type="button" id="ai-chatbot-send-btn" style="
-          background: #4ade80; color: #041208; border: none; border-radius: 10px;
-          padding: 10px 18px; font-family: monospace; font-size: 11px; font-weight: 800; cursor: pointer;
-        ">SEND</button>
-      </div>
+      <div id="lyric-engine-output" style="
+        display:none;padding:12px 14px;border-radius:11px;background:#06090f;
+        border-left:3px solid #4ade80;font-family:monospace;font-size:11.5px;
+        color:#e2e8f0;white-space:pre-wrap;line-height:1.55;
+      "></div>
     `;
 
-    const notepadContainer = notepadArea.closest(".pad, .panel, div") || notepadArea.parentElement;
-    notepadContainer.insertAdjacentElement("afterend", box);
+    const counterBar = document.getElementById("synts-compact-counter");
+    if (counterBar) {
+      counterBar.insertAdjacentElement("afterend", box);
+    } else {
+      notepadArea.insertAdjacentElement("afterend", box);
+    }
 
-    const msgContainer = document.getElementById("ai-chatbot-messages");
-    const inputEl = document.getElementById("ai-chatbot-input");
-    const sendBtn = document.getElementById("ai-chatbot-send-btn");
+    const badge = document.getElementById("rhyme-target-badge");
+    const chipsRow = document.getElementById("rhyme-chips-row");
+    const outputEl = document.getElementById("lyric-engine-output");
+    let pendingNextSection = "";
 
-    const appendMessage = (sender, text) => {
-      const bubble = document.createElement("div");
-      bubble.style.cssText = `
-        padding: 10px 12px; border-radius: 10px; max-width: 88%; line-height: 1.5;
-        background: ${sender === "You" ? "rgba(74, 222, 128, 0.15)" : "rgba(255, 255, 255, 0.05)"};
-        color: ${sender === "You" ? "#4ade80" : "#e2e8f0"};
-        align-self: ${sender === "You" ? "flex-end" : "flex-start"};
-        border: 1px solid ${sender === "You" ? "rgba(74, 222, 128, 0.3)" : "rgba(255, 255, 255, 0.08)"};
-        word-break: break-word; overflow-wrap: break-word;
-      `;
-      bubble.innerHTML = `<strong>${sender}:</strong> ${text.replace(/\n/g, "<br>")}`;
-      msgContainer.appendChild(bubble);
-      msgContainer.scrollTop = msgContainer.scrollHeight;
+    const insertAtEndOrCursor = (snippet) => {
+      const current = notepadArea.value || "";
+      const sep = current.endsWith("\n") || current.length === 0 ? "" : "\n\n";
+      notepadArea.value = `${current}${sep}${snippet}`;
+      notepadArea.dispatchEvent(new Event("input", { bubbles: true }));
+      notepadArea.focus();
     };
 
-    const handleChat = () => {
-      const query = inputEl.value.trim();
-      if (!query) return;
+    const renderRhymes = () => {
+      const { currentLine, lastWord } = getActiveLineAndWord(notepadArea);
+      if (!lastWord) {
+        notify("Write a line in the notepad first so I can rhyme from your words.", true);
+        return;
+      }
 
-      appendMessage("You", query);
-      inputEl.value = "";
+      const rhymes = findRhymesForWord(lastWord);
+      badge.textContent = `Target word: "${lastWord}"`;
+      chipsRow.innerHTML = rhymes
+        .map(
+          (r) => `<button type="button" data-rhyme-word="${r}" style="
+            background:rgba(255,255,255,0.05);color:#f8fafc;border:1px solid rgba(74,222,128,0.3);
+            border-radius:99px;padding:4px 11px;font-family:monospace;font-size:11px;cursor:pointer;
+          ">${r}</button>`
+        )
+        .join("");
 
-      const notepadText = notepadArea.value.trim() || "(Notepad is currently empty)";
+      chipsRow.querySelectorAll("[data-rhyme-word]").forEach((chip) => {
+        chip.onclick = () => {
+          const word = chip.getAttribute("data-rhyme-word");
+          insertAtEndOrCursor(`${currentLine} — ${word}`);
+          notify(`Added "${word}" to your lyrics`);
+        };
+      });
 
-      setTimeout(() => {
-        let reply = "";
-        const lower = query.toLowerCase();
-
-        if (lower.includes("move") || lower.includes("order") || lower.includes("structure")) {
-          reply = `Based on your notepad text, I recommend placing your main hook right after an 8-bar verse setup. Move any narrative backstory into Verse 1 to set the scene before the listener hears the core chorus.`;
-        } else if (lower.includes("keep") || lower.includes("cut") || lower.includes("remove")) {
-          reply = `Keep lines that have strong emotional imagery or multi-syllabic rhymes. Cut or compress repetitive filler phrases that don't advance your story arc.`;
-        } else if (lower.includes("rhyme")) {
-          reply = `Here are some strong rhyming suggestions for your notepad: \n• Fire / Desire / Higher / Inspire / Empire\n• Night / Light / Flight / Write / Bright`;
-        } else if (lower.includes("verse") || lower.includes("chorus")) {
-          reply = `Analyzing your notepad text: Your structure is shaping up well! Consider adding a 4-bar bridge right before your final chorus to elevate the emotional peak.`;
-        } else {
-          reply = `I reviewed your notepad notes ("${notepadText.slice(0, 45)}..."). To make this stronger, ensure your syllable count remains consistent across bars so your delivery stays locked into the beat pocket.`;
-        }
-
-        appendMessage("AI Assistant", reply);
-        notify("AI response generated!");
-      }, 350);
+      outputEl.style.display = "block";
+      outputEl.textContent =
+        `Line: "${currentLine}"\n` +
+        `Rhymes for "${lastWord}": ${rhymes.join(", ")}\n` +
+        `Tip: Click any rhyme pill above to append a matching line starter to your notepad.`;
     };
 
-    sendBtn.onclick = handleChat;
-    inputEl.onkeydown = (e) => {
-      if (e.key === "Enter") handleChat();
+    const renderStructure = () => {
+      const text = (notepadArea.value || "").trim();
+      if (!text) {
+        notify("Write some lyrics in the notepad first so I can structure them.", true);
+        return;
+      }
+
+      const { suggestedOutline, draftSnippet } = buildSongStructureFromLyrics(text);
+      pendingNextSection = draftSnippet;
+      outputEl.style.display = "block";
+      outputEl.textContent = `${suggestedOutline}\n\nReady to insert:\n${draftSnippet}`;
+      notify("Song structure updated from your lyrics");
     };
+
+    document.getElementById("btn-suggest-rhymes").onclick = renderRhymes;
+    document.getElementById("btn-structure-song").onclick = renderStructure;
+    document.getElementById("btn-insert-next-part").onclick = () => {
+      const text = (notepadArea.value || "").trim();
+      if (!text) {
+        notify("Write lyrics first to generate the next section.", true);
+        return;
+      }
+      if (!pendingNextSection) {
+        pendingNextSection = buildSongStructureFromLyrics(text).draftSnippet;
+      }
+      insertAtEndOrCursor(pendingNextSection);
+      notify("Inserted next structural section into notepad");
+    };
+
+    notepadArea.addEventListener("input", () => {
+      const { lastWord } = getActiveLineAndWord(notepadArea);
+      if (lastWord) {
+        badge.textContent = `Last word: "${lastWord}"`;
+      }
+    });
   }
 
   function boot() {
-    initLocalAiAssistant();
+    initLyricRhymeAndStructureEngine();
   }
 
   boot();
