@@ -12,7 +12,27 @@
   const LOCAL_MARKET_KEY = "synts_custom_listings_sec_v2";
   const USED_UTR_KEY = "synts_used_utrs_v1";
   const rateLimitState = { attempts: 0, lockedUntil: 0 };
-
+  function compute8020Split(amountInr) {
+  const gross = Math.max(0, Math.round(Number(amountInr) || 0));
+  const artistShareInr = Math.round(gross * 0.8); // 80% goes to the artist
+  const platformFeeInr = gross - artistShareInr; // 20% stays with the platform
+  return {
+    gross_amount_inr: gross,
+    artist_share_inr: artistShareInr,
+    platform_fee_inr: platformFeeInr
+  };
+}
+  function compute8020Split(amountInr) {
+  const gross = Math.max(0, Math.round(Number(amountInr) || 0));
+  const artistShareInr = Math.round(gross * 0.8); // 80% goes to the artist
+  const platformFeeInr = gross - artistShareInr; // 20% stays with the platform
+  return {
+    gross_amount_inr: gross,
+    artist_share_inr: artistShareInr,
+    platform_fee_inr: platformFeeInr
+  };
+}
+ 
   function notify(msg, isError = false) {
     const t = document.getElementById("toast");
     if (!t) return alert(msg);
