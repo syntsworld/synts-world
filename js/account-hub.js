@@ -56,57 +56,26 @@
 
   function cleanHeaderAndNav() {
     const headerNav = document.querySelector("header nav, .navbar, header .wrap, header");
-    if (headerNav) {
-      const links = headerNav.querySelectorAll("a, button:not(#synts-top-auth-btn)");
-      links.forEach((l) => {
-        const txt = (l.textContent || "").trim().toLowerCase();
-        if (
-          txt === "lyrics directory" ||
-          txt === "write & translate" ||
-          txt === "licensing"
-        ) {
-          l.remove();
-        }
-      });
+    if (!headerNav) return;
+
+    const duplicateAuthBtn = document.getElementById("synts-top-auth-btn");
+    if (duplicateAuthBtn) {
+      duplicateAuthBtn.remove();
     }
 
-    let rightAuthBtn = document.getElementById("synts-top-auth-btn");
-    if (headerNav && !rightAuthBtn) {
-      rightAuthBtn = document.createElement("button");
-      rightAuthBtn.type = "button";
-      rightAuthBtn.id = "synts-top-auth-btn";
-      rightAuthBtn.style.cssText = `
-        position: absolute;
-        right: 20px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: rgba(74, 222, 128, 0.15);
-        color: #4ade80;
-        border: 1px solid rgba(74, 222, 128, 0.4);
-        border-radius: 99px;
-        padding: 6px 14px;
-        font-family: monospace;
-        font-size: 11px;
-        font-weight: 800;
-        cursor: pointer;
-        z-index: 1000;
-      `;
-      headerNav.style.position = headerNav.style.position || "relative";
-      headerNav.appendChild(rightAuthBtn);
-    }
-
-    const prof = getStore(KEYS.PROFILE, defaultProfile);
-    if (rightAuthBtn) {
-      rightAuthBtn.textContent = prof.signedIn
-        ? `✓ ${prof.name || "Synts"}`
-        : "🔐 SIGN IN / PROFILE";
-      rightAuthBtn.onclick = () => {
-        drawerOpen = true;
-        activeTab = "SETTINGS";
-        persistUiState();
-        renderSidebar();
-      };
-    }
+    const links = headerNav.querySelectorAll("a, button");
+    links.forEach((l) => {
+      const txt = (l.textContent || "").trim().toLowerCase();
+      if (
+        txt === "lyrics directory" ||
+        txt === "write & translate" ||
+        txt === "licensing" ||
+        txt === "sign in / profile" ||
+        txt.includes("sign in / profile")
+      ) {
+        l.remove();
+      }
+    });
   }
 
   function injectSidebarStyles() {
@@ -432,7 +401,7 @@
           <label style="font-size:10px;font-family:monospace;color:#9ca3af">PAYOUT UPI ID</label>
           <input type="text" id="prof-upi" value="${(profile.upiId || "").replace(/"/g, "&quot;")}" style="width:100%;font-size:12px;padding:9px;background:#070b12;color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;outline:none" />
           <button type="button" id="save-prof-btn" style="background:#4ade80;color:#041208;border:none;border-radius:9px;padding:10px;font-family:monospace;font-size:11px;font-weight:800;cursor:pointer;margin-top:4px">
-            ✓ SAVE &amp; SIGN IN PROFILE
+            ✓ SAVE SETTINGS
           </button>
         </div>
       `;
