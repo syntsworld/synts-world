@@ -10,7 +10,6 @@
     setTimeout(() => t.classList.add("hidden"), 4500);
   }
 
-  // Phonetic ending & word rhyme map (English + Hinglish/Urdu-style endings)
   const ENDING_RHYMES = {
     ight: ["night", "light", "sight", "fight", "flight", "bright", "height", "write", "tonight"],
     ire: ["fire", "desire", "higher", "wire", "inspire", "empire", "entire", "tire"],
