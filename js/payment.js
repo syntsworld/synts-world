@@ -12,21 +12,21 @@
   const LOCAL_MARKET_KEY = "synts_custom_listings_sec_v2";
   const USED_UTR_KEY = "synts_used_utrs_v1";
   const rateLimitState = { attempts: 0, lockedUntil: 0 };
-}
+
   function compute8020Split(amountInr) {
-  const gross = Math.max(0, Math.round(Number(amountInr) || 0));
-  const artistShareInr = Math.round(gross * 0.8); // 80% goes to the artist
-  const platformFeeInr = gross - artistShareInr; // 20% stays with the platform
-  return {
-    gross_amount_inr: gross,
-    artist_share_inr: artistShareInr,
-    platform_fee_inr: platformFeeInr
-  };
-}
- 
-  function notify(`Listed "${title}" for ₹${safePrice}! Full lyrics stay protected until purchase.`);
-   const split = compute8020Split(safePrice);
-notify(`Listed "${title}" (₹${safePrice} · Artist 80%: ₹${split.artist_share_inr} / Platform 20%: ₹${split.platform_fee_inr}).`);
+    const numericAmount = Number(String(amountInr ?? "").replace(/[^0-9.]/g, ""));
+    const gross = Math.max(0, Math.round(numericAmount || 0));
+    const artistShareInr = Math.round(gross * 0.8); // 80% goes to the artist
+    const platformFeeInr = gross - artistShareInr; // 20% stays with the platform
+    return {
+      gross_amount_inr: gross,
+      artist_share_inr: artistShareInr,
+      platform_fee_inr: platformFeeInr
+    };
+  }
+
+  function notify(msg, isError = false) {
+    const t = document.getElementById("toast");
     if (!t) return alert(msg);
     t.textContent = String(msg);
     t.classList.toggle("error", isError);
@@ -86,10 +86,34 @@ notify(`Listed "${title}" (₹${safePrice} · Artist 80%: ₹${split.artist_shar
     return `upi://pay?${params.toString()}`;
   }
 
+  async function publishListingToSupabase(listing) {
+    try {
+      await fetch(`${PAYMENT_CONFIG.supabaseUrl}/rest/v1/listings`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: PAYMENT_CONFIG.supabaseKey,
+          Authorization: `Bearer ${PAYMENT_CONFIG.supabaseKey}`,
+          Prefer: "return=minimal"
+        },
+        body: JSON.stringify({
+          title: listing.title,
+          album_or_pack: "Creator Studio",
+          genre: "Original Lyrics",
+          category: "Song Lyrics",
+          lyrics_text: listing.preview,
+          price_inr: listing.price,
+          artist_name: PAYMENT_CONFIG.merchantName,
+          artist_upi: PAYMENT_CONFIG.upiId,
+          is_published: true
+        })
+      });
+    } catch (_) {}
+  }
+
   function openUpiCheckoutModal({ title, priceInr, licenseType = "Commercial Lyric License", onPaid }) {
     const existing = document.getElementById("synts-upi-modal");
     if (existing) existing.remove();
-
     const toastEl = document.getElementById("toast");
     if (toastEl) toastEl.classList.add("hidden");
 
@@ -99,11 +123,8 @@ notify(`Listed "${title}" (₹${safePrice} · Artist 80%: ₹${split.artist_shar
       Math.max(Number(String(priceInr).replace(/[^\d.]/g, "")) || 499, 1),
       500000
     );
-
-    const upiUri = buildUpiUri({
-      amountInr: cleanAmount,
-      note: `${title} (${licenseType})`
-    });
+    const split = compute8020Split(cleanAmount);
+    const upiUri = buildUpiUri({ amountInr: cleanAmount, note: `${title} (${licenseType})` });
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiUri)}`;
 
     const modal = document.createElement("div");
@@ -123,19 +144,19 @@ notify(`Listed "${title}" (₹${safePrice} · Artist 80%: ₹${split.artist_shar
           <span style="font-family:monospace;font-size:11px;color:#4ade80;letter-spacing:0.08em">🔒 ENCRYPTED UPI LICENSE GATEWAY</span>
           <button type="button" id="close-upi-modal" style="background:none;border:none;color:#9ca3af;font-size:18px;cursor:pointer">✕</button>
         </div>
-
         <h3 style="margin:0 0 4px;font-size:20px;font-weight:800">${safeTitle}</h3>
-        <div style="font-size:12px;color:#9ca3af;margin-bottom:16px">${safeLicense} · Bank-Verified Delivery</div>
-
+        <div style="font-size:12px;color:#9ca3af;margin-bottom:16px">${safeLicense} · 80% Artist / 20% Platform Split</div>
         <div style="background:#fff;padding:14px;border-radius:16px;display:inline-block;margin-bottom:14px">
           <img src="${qrUrl}" alt="UPI QR Code" width="200" height="200" referrerpolicy="no-referrer" style="display:block;border-radius:8px" />
         </div>
-
-        <div style="font-size:26px;font-weight:900;color:#4ade80;margin-bottom:6px">₹${cleanAmount.toLocaleString("en-IN")}</div>
+        <div style="font-size:26px;font-weight:900;color:#4ade80;margin-bottom:4px">₹${cleanAmount.toLocaleString("en-IN")}</div>
+        <div style="font-size:11px;color:#9ca3af;font-family:monospace;margin-bottom:10px">
+          Artist (80%): <strong style="color:#4ade80">₹${split.artist_share_inr.toLocaleString("en-IN")}</strong> ·
+          Platform (20%): <strong style="color:#38bdf8">₹${split.platform_fee_inr.toLocaleString("en-IN")}</strong>
+        </div>
         <div style="font-size:12px;color:#d1d5db;font-family:monospace;margin-bottom:16px">
           MERCHANT UPI: <strong style="color:#fff">${escapeHtml(PAYMENT_CONFIG.upiId)}</strong>
         </div>
-
         <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px">
           <a href="${escapeHtml(upiUri)}" style="
             flex:1;background:#4ade80;color:#06110a;text-decoration:none;
@@ -146,7 +167,6 @@ notify(`Listed "${title}" (₹${safePrice} · Artist 80%: ₹${split.artist_shar
             padding:10px 12px;border-radius:10px;font-weight:700;font-size:12px;cursor:pointer;
           ">COPY UPI ID</button>
         </div>
-
         <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:14px;text-align:left;display:flex;flex-direction:column;gap:8px">
           <label style="display:block;font-size:11px;color:#9ca3af;font-family:monospace">
             1. YOUR EMAIL OR WHATSAPP (FOR LICENSE &amp; FULL LYRICS DELIVERY):
@@ -155,7 +175,6 @@ notify(`Listed "${title}" (₹${safePrice} · Artist 80%: ₹${split.artist_shar
             width:100%;background:#0a0d11;border:1px solid rgba(255,255,255,0.16);
             border-radius:8px;padding:9px 12px;color:#fff;font-family:monospace;font-size:13px;
           " />
-
           <label style="display:block;font-size:11px;color:#9ca3af;font-family:monospace;margin-top:4px">
             2. ENTER 12-DIGIT BANK UPI UTR / REF NO. AFTER PAYMENT:
           </label>
@@ -175,12 +194,10 @@ notify(`Listed "${title}" (₹${safePrice} · Artist 80%: ₹${split.artist_shar
     `;
 
     document.body.appendChild(modal);
-
     document.getElementById("close-upi-modal").onclick = () => modal.remove();
     modal.onclick = (e) => {
       if (e.target === modal) modal.remove();
     };
-
     document.getElementById("copy-upi-id-btn").onclick = () => {
       navigator.clipboard.writeText(PAYMENT_CONFIG.upiId);
       notify(`Copied verified UPI ID: ${PAYMENT_CONFIG.upiId}`);
@@ -189,7 +206,6 @@ notify(`Listed "${title}" (₹${safePrice} · Artist 80%: ₹${split.artist_shar
     document.getElementById("verify-upi-btn").onclick = async () => {
       const statusEl = document.getElementById("utr-sec-status");
       const now = Date.now();
-
       if (now < rateLimitState.lockedUntil) {
         const waitSec = Math.ceil((rateLimitState.lockedUntil - now) / 1000);
         statusEl.textContent = `Too many failed attempts. Locked for ${waitSec}s.`;
@@ -203,7 +219,6 @@ notify(`Listed "${title}" (₹${safePrice} · Artist 80%: ₹${split.artist_shar
       }
 
       const rawUtr = document.getElementById("upi-utr-input").value.trim();
-
       if (!isValidUpiUtr(rawUtr)) {
         rateLimitState.attempts += 1;
         if (rateLimitState.attempts >= 5) {
@@ -222,7 +237,25 @@ notify(`Listed "${title}" (₹${safePrice} · Artist 80%: ₹${split.artist_shar
       await markUtrAsUsed(rawUtr);
       const utrHash = await sha256Hex(rawUtr);
 
-      // Log order to Supabase for bank verification
+      try {
+        await fetch(`${PAYMENT_CONFIG.supabaseUrl}/rest/v1/purchases`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: PAYMENT_CONFIG.supabaseKey,
+            Authorization: `Bearer ${PAYMENT_CONFIG.supabaseKey}`,
+            Prefer: "return=minimal"
+          },
+          body: JSON.stringify({
+            gross_amount_inr: split.gross_amount_inr,
+            artist_share_inr: split.artist_share_inr,
+            platform_fee_inr: split.platform_fee_inr,
+            artist_upi: PAYMENT_CONFIG.upiId,
+            status: "recorded"
+          })
+        });
+      } catch (_) {}
+
       try {
         await fetch(`${PAYMENT_CONFIG.supabaseUrl}/rest/v1/upi_orders`, {
           method: "POST",
@@ -244,7 +277,6 @@ notify(`Listed "${title}" (₹${safePrice} · Artist 80%: ₹${split.artist_shar
         });
       } catch (_) {}
 
-      // Save to user's local purchase history as "Verification Pending"
       try {
         const purKey = "synts_user_purchases_v1";
         const list = JSON.parse(localStorage.getItem(purKey) || "[]");
@@ -253,16 +285,18 @@ notify(`Listed "${title}" (₹${safePrice} · Artist 80%: ₹${split.artist_shar
           title,
           type: licenseType,
           price: `₹${cleanAmount}`,
+          artistShare: `₹${split.artist_share_inr}`,
+          platformFee: `₹${split.platform_fee_inr}`,
           utr: `${rawUtr.slice(0, 4)}****${rawUtr.slice(-4)}`,
           date: "Just now",
-          status: "UTR Logged · Pending Bank Verification"
+          status: "Order Recorded · 80/20 Split Applied"
         });
         localStorage.setItem(purKey, JSON.stringify(list));
       } catch (_) {}
 
       modal.remove();
       notify(
-        `UTR #${rawUtr.slice(0, 4)}****${rawUtr.slice(-4)} submitted! Full lyrics & license will be sent to ${buyerContact} once verified in our bank app.`
+        `Order recorded for "${title}" (₹${cleanAmount} · Artist 80%: ₹${split.artist_share_inr} / Platform 20%: ₹${split.platform_fee_inr}). Delivery details noted for ${buyerContact}.`
       );
       if (typeof onPaid === "function") onPaid(rawUtr);
     };
@@ -280,7 +314,6 @@ notify(`Listed "${title}" (₹${safePrice} · Artist 80%: ₹${split.artist_shar
 
         const label = (btn.textContent || "").trim().toUpperCase();
         const href = (btn.getAttribute("href") || "").trim();
-
         if (href.startsWith("#") && href.length > 1) return;
         if (label.includes("WRITE & SELL") || label.includes("EXPLORE PROJECTS")) return;
 
@@ -303,10 +336,7 @@ notify(`Listed "${title}" (₹${safePrice} · Artist 80%: ₹${split.artist_shar
             btn.closest("article, .card, .project-card, .market-card, .synts-custom-market-card, li, div") ||
             document.body;
           const titleEl = card.querySelector("h3, h4, h2, .title, .card-title, strong");
-          const title =
-            btn.getAttribute("data-title") ||
-            (titleEl ? titleEl.textContent.trim() : "Original Lyric License");
-
+          const title = btn.getAttribute("data-title") || (titleEl ? titleEl.textContent.trim() : "Original Lyric License");
           const priceSource = btn.getAttribute("data-price") || card.textContent || "";
           const priceMatch = priceSource.match(/₹\s*([\d,]+(?:\.\d{1,2})?)/);
           const priceInr = priceMatch
@@ -317,7 +347,7 @@ notify(`Listed "${title}" (₹${safePrice} · Artist 80%: ₹${split.artist_shar
             title,
             priceInr,
             onPaid: () => {
-              btn.textContent = "⏳ UTR VERIFYING";
+              btn.textContent = "⏳ VERIFYING";
             }
           });
         }
@@ -338,11 +368,7 @@ notify(`Listed "${title}" (₹${safePrice} · Artist 80%: ₹${split.artist_shar
           const priceMatch = msg.match(/₹\s*([\d,]+)/);
           const extractedTitle = titleMatch ? titleMatch[1] : "Licensed Lyric Pack";
           const extractedPrice = priceMatch ? Number(priceMatch[1].replace(/,/g, "")) : 1499;
-
-          openUpiCheckoutModal({
-            title: extractedTitle,
-            priceInr: extractedPrice
-          });
+          openUpiCheckoutModal({ title: extractedTitle, priceInr: extractedPrice });
         }
       });
 
@@ -383,46 +409,58 @@ notify(`Listed "${title}" (₹${safePrice} · Artist 80%: ₹${split.artist_shar
       if (!text) return notify("Write some lyrics first before saving!", true);
       const title = prompt("Enter a title for this draft:", "Untitled_Lyric_Draft") || "Untitled";
       const pin = prompt("Set a 4-digit PIN to lock this lyric file:", "") || "";
-
       const saved = JSON.parse(localStorage.getItem(LOCAL_SONGS_KEY) || "[]");
       saved.unshift({ id: Date.now(), title, text, pin, date: new Date().toLocaleDateString() });
       localStorage.setItem(LOCAL_SONGS_KEY, JSON.stringify(saved));
       notify(`Saved "${title}" to your encrypted folder!`);
     };
 
-    document.getElementById("list-sale-btn").onclick = () => {
+    document.getElementById("list-sale-btn").onclick = async () => {
       const text = area.value.trim();
       if (!text) return notify("Write or load lyrics in the studio before listing for sale!", true);
       const title = prompt("Enter Song / Lyric Title for the Marketplace:");
       if (!title) return;
       const rawPrice = prompt("Enter License Price in INR (₹):", "499") || "499";
-      const safePrice = Math.min(Math.max(Number(rawPrice.replace(/[^\d.]/g, "")) || 499, 1), 500000);
+      const safePrice = Math.min(
+        Math.max(Number(rawPrice.replace(/[^\d.]/g, "")) || 499, 1),
+        500000
+      );
+      const split = compute8020Split(safePrice);
+      const cleanTitle = title.trim().slice(0, 80);
 
       // SECURITY: Store only a 120-character teaser in public marketplace storage, never the full song!
-      const listings = JSON.parse(localStorage.getItem(LOCAL_MARKET_KEY) || "[]");
-      listings.unshift({
+      const newListing = {
         id: Date.now(),
-        title: title.trim().slice(0, 80),
+        title: cleanTitle,
         price: safePrice,
+        artist_share_inr: split.artist_share_inr,
+        platform_fee_inr: split.platform_fee_inr,
         preview: text.slice(0, 120)
-      });
+      };
+
+      const listings = JSON.parse(localStorage.getItem(LOCAL_MARKET_KEY) || "[]");
+      listings.unshift(newListing);
       localStorage.setItem(LOCAL_MARKET_KEY, JSON.stringify(listings));
       injectCustomListings();
-      notify(`Listed "${title}" for ₹${safePrice}! Full lyrics are hidden until bank verification.`);
+      await publishListingToSupabase(newListing);
+
+      notify(
+        `Listed "${cleanTitle}" for ₹${safePrice} (Artist 80%: ₹${split.artist_share_inr} / Platform 20%: ₹${split.platform_fee_inr}). Full lyrics stay protected until purchase.`
+      );
     };
   }
 
   function injectCustomListings() {
     const marketGrid = document.querySelector("#marketplace .grid, #projects .grid, .marketplace-grid");
     if (!marketGrid) return;
-
     document.querySelectorAll(".synts-custom-market-card").forEach((el) => el.remove());
-    const listings = JSON.parse(localStorage.getItem(LOCAL_MARKET_KEY) || "[]");
 
+    const listings = JSON.parse(localStorage.getItem(LOCAL_MARKET_KEY) || "[]");
     listings.forEach((item) => {
       const safeTitle = escapeHtml(item.title);
       const safePreview = escapeHtml(item.preview);
       const safePrice = Number(item.price) || 499;
+      const split = compute8020Split(safePrice);
 
       const card = document.createElement("div");
       card.className = "synts-custom-market-card";
@@ -430,6 +468,7 @@ notify(`Listed "${title}" (₹${safePrice} · Artist 80%: ₹${split.artist_shar
         background:#12171d;border:1px solid rgba(74,222,128,0.28);border-radius:16px;
         padding:18px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;
       `;
+
       card.innerHTML = `
         <div>
           <span style="font-size:10px;font-family:monospace;color:#4ade80">🔒 VERIFIED CREATOR LISTING</span>
@@ -438,7 +477,10 @@ notify(`Listed "${title}" (₹${safePrice} · Artist 80%: ₹${split.artist_shar
             font-family:monospace;font-size:12px;color:#9ca3af;white-space:pre-wrap;
             background:rgba(0,0,0,0.35);padding:10px;border-radius:8px;margin:0;
             user-select:none;-webkit-user-select:none;
-          ">${safePreview}... [LOCKED UNTIL UPI VERIFIED]</pre>
+          ">${safePreview}... [LOCKED UNTIL PURCHASE]</pre>
+        </div>
+        <div style="font-size:10px;font-family:monospace;color:#9ca3af">
+          Artist 80%: <strong style="color:#4ade80">₹${split.artist_share_inr}</strong> · Platform 20%: <strong style="color:#38bdf8">₹${split.platform_fee_inr}</strong>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08)">
           <span style="font-size:18px;font-weight:900;color:#4ade80">₹${safePrice}</span>
@@ -448,6 +490,7 @@ notify(`Listed "${title}" (₹${safePrice} · Artist 80%: ₹${split.artist_shar
           ">LICENSE NOW ↗</button>
         </div>
       `;
+
       marketGrid.prepend(card);
     });
   }
