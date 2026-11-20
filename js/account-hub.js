@@ -54,103 +54,30 @@
     setStore(KEYS.UI_STATE, { activeTab, drawerOpen });
   }
 
-  function cleanHeaderAndNav() {
-    const headerNav = document.querySelector("header nav, .navbar, header .wrap, header");
-    if (!headerNav) return;
-
-    const duplicateAuthBtn = document.getElementById("synts-top-auth-btn");
-    if (duplicateAuthBtn) {
-      duplicateAuthBtn.remove();
-    }
-
-    const links = headerNav.querySelectorAll("a, button");
-    links.forEach((l) => {
-      const txt = (l.textContent || "").trim().toLowerCase();
-      if (
-        txt === "lyrics directory" ||
-        txt === "write & translate" ||
-        txt === "licensing" ||
-        txt === "sign in / profile" ||
-        txt.includes("sign in / profile")
-      ) {
-        l.remove();
-      }
-    });
+  function removeLeftSidebar() {
+    document.getElementById("synts-left-sidebar")?.remove();
+    document.getElementById("synts-left-dock-css")?.remove();
+    document.body.classList.remove("synts-dock-expanded", "synts-dock-collapsed");
   }
 
-  function wireHeaderToHub() {
-    const header = document.querySelector("header nav, .navbar, header .wrap, header");
-    if (!header) return;
-
-    const oldAuthBtn = document.getElementById("synts-top-auth-btn");
-    if (oldAuthBtn) oldAuthBtn.remove();
-
+  function findProfileAnchor(header) {
     const controls = Array.from(header.querySelectorAll("button, a"));
-
-    controls.forEach((el) => {
-      if (el.dataset.syntsHubWired === "1") return;
-
+    for (const el of controls) {
       const label = (el.textContent || "").trim().toLowerCase();
       const aria = (el.getAttribute("aria-label") || "").toLowerCase();
       const title = (el.getAttribute("title") || "").toLowerCase();
-
       if (label === "s synts" || label === "synts" || aria.includes("profile") || title.includes("profile")) {
-        el.dataset.syntsHubWired = "1";
-        el.addEventListener("click", (e) => {
-          e.preventDefault();
-          drawerOpen = !drawerOpen;
-          if (drawerOpen && !activeTab) activeTab = "OVERVIEW";
-          persistUiState();
-          renderSidebar();
-        });
-      } else if (
-        el.querySelector("svg.lucide-settings, .fa-gear, .fa-cog") ||
-        aria.includes("setting") ||
-        title.includes("setting")
-      ) {
-        el.dataset.syntsHubWired = "1";
-        el.addEventListener("click", (e) => {
-          e.preventDefault();
-          drawerOpen = true;
-          activeTab = "SETTINGS";
-          persistUiState();
-          renderSidebar();
-        });
+        return el;
       }
-    });
-  }
-
-  function injectSidebarStyles() {
-    if (document.getElementById("synts-left-dock-css")) return;
-    const style = document.createElement("style");
-    style.id = "synts-left-dock-css";
-    style.textContent = `
-      @media (min-width: 1100px) {
-        body.synts-dock-expanded main,
-        body.synts-dock-expanded footer {
-          margin-left: 340px !important;
-          width: calc(100% - 340px) !important;
-          transition: margin-left 0.22s ease, width 0.22s ease;
-        }
-        body.synts-dock-collapsed main,
-        body.synts-dock-collapsed footer {
-          margin-left: 68px !important;
-          width: calc(100% - 68px) !important;
-          transition: margin-left 0.22s ease, width 0.22s ease;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  function buildLeftSidebar() {
-    let sidebar = document.getElementById("synts-left-sidebar");
-    if (!sidebar) {
-      sidebar = document.createElement("aside");
-      sidebar.id = "synts-left-sidebar";
-      document.body.appendChild(sidebar);
     }
-    renderSidebar();
+    for (const el of controls) {
+      const aria = (el.getAttribute("aria-label") || "").toLowerCase();
+      const title = (el.getAttribute("title") || "").toLowerCase();
+      if (el.querySelector("svg.lucide-settings, .fa-gear, .fa-cog") || aria.includes("setting") || title.includes("setting")) {
+        return el;
+      }
+    }
+    return header.lastElementChild || header;
   }
 
   function collectCatalogItems() {
@@ -203,12 +130,39 @@
     return items;
   }
 
-  function renderSidebar() {
-    const sidebar = document.getElementById("synts-left-sidebar");
-    if (!sidebar) return;
+  function ensureProfileMenu(header) {
+    let menu = document.getElementById("synts-profile-menu");
+    if (!menu) {
+      menu = document.createElement("div");
+      menu.id = "synts-profile-menu";
+      document.body.appendChild(menu);
+    }
 
-    document.body.classList.toggle("synts-dock-expanded", drawerOpen);
-    document.body.classList.toggle("synts-dock-collapsed", !drawerOpen);
+    const anchor = findProfileAnchor(header);
+    const rect = anchor.getBoundingClientRect();
+    const menuWidth = Math.min(350, window.innerWidth - 24);
+    const left = Math.max(12, Math.min(window.innerWidth - menuWidth - 12, rect.right - menuWidth));
+    const top = Math.max(64, rect.bottom + 10);
+
+    menu.style.cssText = `
+      display: ${drawerOpen ? "flex" : "none"};
+      position: fixed;
+      top: ${top}px;
+      left: ${left}px;
+      width: ${menuWidth}px;
+      max-height: calc(100vh - ${top + 20}px);
+      z-index: 1050;
+      background: linear-gradient(180deg, rgba(12, 17, 25, 0.99), rgba(7, 10, 15, 0.99));
+      border: 1px solid rgba(74, 222, 128, 0.35);
+      border-radius: 18px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.88);
+      flex-direction: column;
+      overflow: hidden;
+      color: #f3f6fc;
+      text-align: left;
+    `;
+
+    if (!drawerOpen) return;
 
     const profile = getStore(KEYS.PROFILE, defaultProfile);
     const isArtist = profile.role === "artist";
@@ -239,82 +193,26 @@
       { id: "SETTINGS", icon: "⚙️", label: "Profile & UPI Settings", count: "" }
     ];
 
-    sidebar.style.cssText = `
-      position: fixed;
-      top: 80px;
-      bottom: 88px;
-      left: 10px;
-      width: ${drawerOpen ? "340px" : "54px"};
-      z-index: 950;
-      background: linear-gradient(180deg, rgba(12, 17, 25, 0.98), rgba(7, 10, 15, 0.99));
-      border: 1px solid rgba(74, 222, 128, 0.32);
-      border-radius: 20px;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      transition: width 0.22s ease;
-      color: #f3f6fc;
-      text-align: left;
-    `;
-
-    if (!drawerOpen) {
-      sidebar.innerHTML = `
-        <div style="display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:10px;height:100%">
-          <button type="button" id="expand-dock-btn" title="Open Menu" style="
-            width:38px;height:38px;border-radius:11px;background:#4ade80;color:#041208;
-            border:none;font-weight:900;font-size:15px;cursor:pointer;
-          ">❯</button>
-          <div style="width:28px;height:1px;background:rgba(255,255,255,0.1)"></div>
-          ${navItems
-            .map(
-              (item) => `
-            <button type="button" data-rail-tab="${item.id}" title="${item.label}" style="
-              width:38px;height:38px;border-radius:11px;
-              border:1px solid ${activeTab === item.id ? "rgba(74,222,128,0.55)" : "transparent"};
-              background:${activeTab === item.id ? "rgba(34,197,94,0.2)" : "rgba(255,255,255,0.04)"};
-              font-size:16px;cursor:pointer;display:grid;place-items:center;
-            ">${item.icon}</button>`
-            )
-            .join("")}
-        </div>
-      `;
-      sidebar.querySelector("#expand-dock-btn").onclick = () => {
-        drawerOpen = true;
-        persistUiState();
-        renderSidebar();
-      };
-      sidebar.querySelectorAll("[data-rail-tab]").forEach((btn) => {
-        btn.onclick = () => {
-          activeTab = btn.getAttribute("data-rail-tab");
-          drawerOpen = true;
-          persistUiState();
-          renderSidebar();
-        };
-      });
-      return;
-    }
-
     let panelHtml = "";
 
     if (activeTab === "OVERVIEW") {
       panelHtml = `
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px">
+          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px">
             <div style="font-size:9px;font-family:monospace;color:#9ca3af">PURCHASES</div>
-            <div style="font-size:22px;font-weight:900;color:#38bdf8;margin-top:2px">${purchases.length}</div>
+            <div style="font-size:20px;font-weight:900;color:#38bdf8;margin-top:2px">${purchases.length}</div>
           </div>
-          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px">
+          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px">
             <div style="font-size:9px;font-family:monospace;color:#9ca3af">SONGS PLAYED</div>
-            <div style="font-size:22px;font-weight:900;color:#a78bfa;margin-top:2px">${listenHist.length}</div>
+            <div style="font-size:20px;font-weight:900;color:#a78bfa;margin-top:2px">${listenHist.length}</div>
           </div>
-          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px">
+          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px">
             <div style="font-size:9px;font-family:monospace;color:#9ca3af">SAVED SONGS</div>
-            <div style="font-size:22px;font-weight:900;color:#4ade80;margin-top:2px">${savedSongs.length}</div>
+            <div style="font-size:20px;font-weight:900;color:#4ade80;margin-top:2px">${savedSongs.length}</div>
           </div>
-          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px">
+          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px">
             <div style="font-size:9px;font-family:monospace;color:#9ca3af">DIRECTORY ITEMS</div>
-            <div style="font-size:22px;font-weight:900;color:#facc15;margin-top:2px">${totalUploadedFiles}</div>
+            <div style="font-size:20px;font-weight:900;color:#facc15;margin-top:2px">${totalUploadedFiles}</div>
           </div>
         </div>
       `;
@@ -331,10 +229,10 @@
       );
 
       panelHtml = `
-        <div style="margin-bottom:12px">
-          <input type="text" id="sidebar-song-search" placeholder="🔍 Search song, album, or directory..." value="${globalSearchQuery.replace(/"/g, "&quot;")}" style="
+        <div style="margin-bottom:10px">
+          <input type="text" id="profile-menu-search" placeholder="🔍 Search song, album, or directory..." value="${globalSearchQuery.replace(/"/g, "&quot;")}" style="
             width:100%;background:#070b12;border:1px solid rgba(74,222,128,0.4);border-radius:10px;
-            padding:9px 12px;color:#fff;font-family:monospace;font-size:11px;outline:none;
+            padding:8px 11px;color:#fff;font-family:monospace;font-size:11px;outline:none;
           " />
         </div>
         <div style="display:flex;flex-direction:column;gap:8px">
@@ -343,12 +241,12 @@
               ? filtered
                   .map(
                     (r) => `
-            <div style="padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.09);border-radius:12px">
-              <div style="font-size:13px;font-weight:800;color:#fff">${r.title}</div>
+            <div style="padding:9px 11px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.09);border-radius:11px">
+              <div style="font-size:12px;font-weight:800;color:#fff">${r.title}</div>
               <div style="font-size:10px;color:#38bdf8;font-family:monospace;margin-top:2px">${r.album}</div>
               <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
                 <span style="font-size:10px;color:#9ca3af">${r.genre}</span>
-                <strong style="font-size:12px;color:#4ade80">${r.price}</strong>
+                <strong style="font-size:11px;color:#4ade80">${r.price}</strong>
               </div>
             </div>`
                   )
@@ -366,7 +264,7 @@
           <div style="font-size:11px;color:#9ca3af;line-height:1.45">
             Custom listings: ${customUploads.length} · Directory files: ${totalUploadedFiles}
           </div>
-          <a href="#marketplace" style="background:#4ade80;color:#041208;padding:10px;border-radius:8px;font-family:monospace;font-size:11px;font-weight:800;text-align:center;text-decoration:none">
+          <a href="#marketplace" style="background:#4ade80;color:#041208;padding:9px;border-radius:8px;font-family:monospace;font-size:11px;font-weight:800;text-align:center;text-decoration:none">
             JUMP TO DIRECTORY ↗
           </a>
         </div>
@@ -378,8 +276,8 @@
         ? purchases
             .map(
               (p) => `
-          <div style="padding:11px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(74,222,128,0.28);border-radius:12px;margin-bottom:8px">
-            <div style="font-size:13px;font-weight:800;color:#fff">${p.title}</div>
+          <div style="padding:10px 11px;background:rgba(255,255,255,0.03);border:1px solid rgba(74,222,128,0.28);border-radius:11px;margin-bottom:8px">
+            <div style="font-size:12px;font-weight:800;color:#fff">${p.title}</div>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;font-size:10px;font-family:monospace">
               <span style="color:#9ca3af">${p.status || "Completed"}</span>
               <strong style="color:#4ade80">${p.price || ""}</strong>
@@ -395,8 +293,8 @@
         ? listenHist
             .map(
               (item) => `
-          <div style="padding:10px 12px;background:rgba(255,255,255,0.03);border-left:3px solid #38bdf8;border-radius:10px;margin-bottom:8px">
-            <div style="font-size:13px;font-weight:700;color:#fff">${item.title}</div>
+          <div style="padding:9px 11px;background:rgba(255,255,255,0.03);border-left:3px solid #38bdf8;border-radius:10px;margin-bottom:8px">
+            <div style="font-size:12px;font-weight:700;color:#fff">${item.title}</div>
             <div style="font-size:10px;color:#9ca3af;margin-top:2px">${item.time || ""}</div>
           </div>`
             )
@@ -409,8 +307,8 @@
         ? readHist
             .map(
               (item) => `
-          <div style="padding:10px 12px;background:rgba(255,255,255,0.03);border-left:3px solid #facc15;border-radius:10px;margin-bottom:8px">
-            <div style="font-size:13px;font-weight:700;color:#fff">${item.title}</div>
+          <div style="padding:9px 11px;background:rgba(255,255,255,0.03);border-left:3px solid #facc15;border-radius:10px;margin-bottom:8px">
+            <div style="font-size:12px;font-weight:700;color:#fff">${item.title}</div>
             <div style="font-size:10px;color:#9ca3af;margin-top:2px">${item.time || ""}</div>
           </div>`
             )
@@ -423,9 +321,9 @@
         ? savedSongs
             .map(
               (s) => `
-          <div style="padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:13px;color:#fff;font-weight:700">${s.title}</span>
-            <span style="font-size:11px;color:#4ade80;font-family:monospace">${s.price || ""}</span>
+          <div style="padding:9px 11px;background:rgba(255,255,255,0.03);border-radius:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:12px;color:#fff;font-weight:700">${s.title}</span>
+            <span style="font-size:10px;color:#4ade80;font-family:monospace">${s.price || ""}</span>
           </div>`
             )
             .join("")
@@ -434,29 +332,29 @@
 
     if (activeTab === "SETTINGS") {
       panelHtml = `
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <div style="font-family:monospace;font-size:11px;color:#4ade80;font-weight:800;margin-bottom:2px">⚙️ PROFILE &amp; UPI SETTINGS</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-family:monospace;font-size:10px;color:#4ade80;font-weight:800">⚙️ PROFILE &amp; UPI SETTINGS</div>
           <label style="font-size:10px;font-family:monospace;color:#9ca3af">YOUR NAME</label>
-          <input type="text" id="prof-name" value="${(profile.name || "").replace(/"/g, "&quot;")}" style="width:100%;font-size:12px;padding:9px;background:#070b12;color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;outline:none" />
+          <input type="text" id="prof-name" value="${(profile.name || "").replace(/"/g, "&quot;")}" style="width:100%;font-size:12px;padding:8px;background:#070b12;color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;outline:none" />
           <label style="font-size:10px;font-family:monospace;color:#9ca3af">HANDLE</label>
-          <input type="text" id="prof-handle" value="${(profile.handle || "").replace(/"/g, "&quot;")}" style="width:100%;font-size:12px;padding:9px;background:#070b12;color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;outline:none" />
+          <input type="text" id="prof-handle" value="${(profile.handle || "").replace(/"/g, "&quot;")}" style="width:100%;font-size:12px;padding:8px;background:#070b12;color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;outline:none" />
           <label style="font-size:10px;font-family:monospace;color:#9ca3af">PAYOUT UPI ID</label>
-          <input type="text" id="prof-upi" value="${(profile.upiId || "").replace(/"/g, "&quot;")}" style="width:100%;font-size:12px;padding:9px;background:#070b12;color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;outline:none" />
-          <button type="button" id="save-prof-btn" style="background:#4ade80;color:#041208;border:none;border-radius:9px;padding:10px;font-family:monospace;font-size:11px;font-weight:800;cursor:pointer;margin-top:4px">
+          <input type="text" id="prof-upi" value="${(profile.upiId || "").replace(/"/g, "&quot;")}" style="width:100%;font-size:12px;padding:8px;background:#070b12;color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;outline:none" />
+          <button type="button" id="save-prof-btn" style="background:#4ade80;color:#041208;border:none;border-radius:9px;padding:9px;font-family:monospace;font-size:11px;font-weight:800;cursor:pointer;margin-top:2px">
             ✓ SAVE SETTINGS
           </button>
         </div>
       `;
     }
 
-    sidebar.innerHTML = `
-      <div style="padding:16px;border-bottom:1px solid rgba(255,255,255,0.08)">
+    menu.innerHTML = `
+      <div style="padding:14px;border-bottom:1px solid rgba(255,255,255,0.08)">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div>
-            <strong style="font-size:16px;color:#fff;display:block">${profile.name || "Synts"}</strong>
-            <span style="font-size:10px;color:#4ade80;font-family:monospace">Studio Hub</span>
+            <strong style="font-size:15px;color:#fff;display:block">${profile.name || "Synts"}</strong>
+            <span style="font-size:10px;color:#4ade80;font-family:monospace">${profile.handle || "Studio Hub"}</span>
           </div>
-          <button type="button" id="collapse-dock-btn" style="background:rgba(255,255,255,0.06);color:#9ca3af;border:none;border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:12px">❮</button>
+          <button type="button" id="close-profile-menu-btn" style="background:rgba(255,255,255,0.06);color:#9ca3af;border:none;border-radius:8px;width:26px;height:26px;cursor:pointer;font-size:12px">✕</button>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;background:rgba(0,0,0,0.45);padding:4px;border-radius:10px;margin-top:10px">
@@ -473,14 +371,14 @@
         </div>
       </div>
 
-      <div style="padding:10px 12px;display:flex;flex-direction:column;gap:5px;border-bottom:1px solid rgba(255,255,255,0.08)">
+      <div style="padding:8px 10px;display:flex;flex-direction:column;gap:4px;border-bottom:1px solid rgba(255,255,255,0.08)">
         ${navItems
           .map((item) => {
             const act = activeTab === item.id;
             return `
             <button type="button" data-hub-tab="${item.id}" style="
               display:flex;align-items:center;justify-content:space-between;width:100%;
-              padding:9px 11px;border-radius:10px;cursor:pointer;
+              padding:8px 10px;border-radius:9px;cursor:pointer;
               border:1px solid ${act ? "rgba(74,222,128,0.45)" : "transparent"};
               background:${act ? "rgba(34,197,94,0.16)" : "transparent"};
               color:${act ? "#4ade80" : "#d1d5db"};
@@ -493,27 +391,27 @@
           .join("")}
       </div>
 
-      <div style="flex:1;overflow-y:auto;padding:16px">
+      <div style="flex:1;overflow-y:auto;padding:12px 14px">
         ${panelHtml}
       </div>
     `;
 
-    sidebar.querySelector("#collapse-dock-btn").onclick = () => {
+    menu.querySelector("#close-profile-menu-btn").onclick = () => {
       drawerOpen = false;
       persistUiState();
-      renderSidebar();
+      ensureProfileMenu(header);
     };
 
-    sidebar.querySelectorAll("[data-hub-tab]").forEach((btn) => {
+    menu.querySelectorAll("[data-hub-tab]").forEach((btn) => {
       btn.onclick = () => {
         activeTab = btn.getAttribute("data-hub-tab");
         drawerOpen = true;
         persistUiState();
-        renderSidebar();
+        ensureProfileMenu(header);
       };
     });
 
-    sidebar.querySelectorAll("[data-role-switch]").forEach((btn) => {
+    menu.querySelectorAll("[data-role-switch]").forEach((btn) => {
       btn.onclick = () => {
         const p = getStore(KEYS.PROFILE, defaultProfile);
         p.role = btn.getAttribute("data-role-switch");
@@ -522,18 +420,18 @@
           activeTab = "OVERVIEW";
         }
         persistUiState();
-        renderSidebar();
+        ensureProfileMenu(header);
         window.dispatchEvent(new Event("synts-role-changed"));
         notify(p.role === "artist" ? "Customize mode active" : "Explore mode active");
       };
     });
 
-    const searchInput = sidebar.querySelector("#sidebar-song-search");
+    const searchInput = menu.querySelector("#profile-menu-search");
     if (searchInput) {
       searchInput.oninput = (e) => {
         globalSearchQuery = e.target.value;
-        renderSidebar();
-        const newInp = sidebar.querySelector("#sidebar-song-search");
+        ensureProfileMenu(header);
+        const newInp = menu.querySelector("#profile-menu-search");
         if (newInp) {
           newInp.focus();
           newInp.selectionStart = newInp.selectionEnd = newInp.value.length;
@@ -541,28 +439,97 @@
       };
     }
 
-    const realSaveBtn = sidebar.querySelector("#save-prof-btn");
-    if (realSaveBtn) {
-      realSaveBtn.onclick = () => {
+    const saveBtn = menu.querySelector("#save-prof-btn");
+    if (saveBtn) {
+      saveBtn.onclick = () => {
         const p = getStore(KEYS.PROFILE, defaultProfile);
-        p.name = (sidebar.querySelector("#prof-name")?.value || "").trim() || p.name;
-        p.handle = (sidebar.querySelector("#prof-handle")?.value || "").trim() || p.handle;
-        p.upiId = (sidebar.querySelector("#prof-upi")?.value || "").trim() || p.upiId;
+        p.name = (menu.querySelector("#prof-name")?.value || "").trim() || p.name;
+        p.handle = (menu.querySelector("#prof-handle")?.value || "").trim() || p.handle;
+        p.upiId = (menu.querySelector("#prof-upi")?.value || "").trim() || p.upiId;
         p.signedIn = true;
         setStore(KEYS.PROFILE, p);
-        cleanHeaderAndNav();
-        wireHeaderToHub();
-        renderSidebar();
+        ensureProfileMenu(header);
         notify("Profile & UPI settings saved");
       };
     }
   }
 
+  function wireHeaderAndMenu() {
+    removeLeftSidebar();
+
+    const header = document.querySelector("header nav, .navbar, header .wrap, header");
+    if (!header) return;
+
+    document.getElementById("synts-top-auth-btn")?.remove();
+
+    header.querySelectorAll("a, button").forEach((el) => {
+      const txt = (el.textContent || "").trim().toLowerCase();
+      if (
+        txt === "lyrics directory" ||
+        txt === "write & translate" ||
+        txt === "licensing" ||
+        txt === "sign in / profile" ||
+        txt.includes("sign in / profile")
+      ) {
+        el.remove();
+      }
+    });
+
+    const controls = Array.from(header.querySelectorAll("button, a"));
+    controls.forEach((el) => {
+      if (el.dataset.syntsHubWired === "1") return;
+
+      const label = (el.textContent || "").trim().toLowerCase();
+      const aria = (el.getAttribute("aria-label") || "").toLowerCase();
+      const title = (el.getAttribute("title") || "").toLowerCase();
+
+      if (label === "s synts" || label === "synts" || aria.includes("profile") || title.includes("profile")) {
+        el.dataset.syntsHubWired = "1";
+        el.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          drawerOpen = !drawerOpen;
+          if (drawerOpen && !activeTab) activeTab = "OVERVIEW";
+          persistUiState();
+          ensureProfileMenu(header);
+        });
+      } else if (
+        el.querySelector("svg.lucide-settings, .fa-gear, .fa-cog") ||
+        aria.includes("setting") ||
+        title.includes("setting")
+      ) {
+        el.dataset.syntsHubWired = "1";
+        el.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          drawerOpen = activeTab === "SETTINGS" ? !drawerOpen : true;
+          activeTab = "SETTINGS";
+          persistUiState();
+          ensureProfileMenu(header);
+        });
+      }
+    });
+
+    if (!document.body.dataset.syntsOutsideClickWired) {
+      document.body.dataset.syntsOutsideClickWired = "1";
+      document.addEventListener("click", (e) => {
+        if (!drawerOpen) return;
+        const menu = document.getElementById("synts-profile-menu");
+        if (!menu || menu.contains(e.target) || header.contains(e.target)) return;
+        drawerOpen = false;
+        persistUiState();
+        ensureProfileMenu(header);
+      });
+      window.addEventListener("resize", () => {
+        if (drawerOpen) ensureProfileMenu(header);
+      });
+    }
+
+    ensureProfileMenu(header);
+  }
+
   function init() {
-    cleanHeaderAndNav();
-    wireHeaderToHub();
-    injectSidebarStyles();
-    buildLeftSidebar();
+    wireHeaderAndMenu();
   }
 
   init();
