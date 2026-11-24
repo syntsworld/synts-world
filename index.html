@@ -1085,36 +1085,45 @@ async function loadReleases() {
   state.releases = fallbackReleases();
   renderReleases();
   if (!sb) return;
+
   try {
-    const { data, error } = await sb.from("releases")
-      .select("id,title,artist_name,release_type,genre,price_inr,preview_url,cover_url,description,creator_id")
-      .eq("status", "published").order("created_at", { ascending: false }).limit(100);
-    if (error) return;
-    if (data && data.length) { state.releases = data; renderReleases(); }
+    const { data, error } = await sb
+      .from("listings")
+      .select("id,title,artist_name,category,genre,price_inr,lyrics_text,is_published,created_at")
+      .eq("is_published", true)
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    if (error || !Array.isArray(data) || !data.length) return;
+
+    const mappedListings = data.map(item => ({
+      id: item.id,
+      title: item.title || "Untitled Lyric",
+      artist_name: item.artist_name || "Synts",
+      release_type: "track",
+      genre: item.genre || item.category || "Original Lyrics",
+      price_inr: Number(item.price_inr) || 499,
+      preview_url: "",
+      sample_lang: "en",
+      description: item.lyrics_text || ""
+    }));
+
+    state.releases = [...mappedListings, ...fallbackReleases()];
+    renderReleases();
   } catch {}
 }
-function releaseCard(r, i) {
-  const cover = isHttpUrl(r.cover_url)
-    ? h("img", { src: r.cover_url, alt: r.title + " cover", loading: "lazy" })
-    : h("div", { class: "cover-fallback album-gradient-" + (i % 4) }, h("i", { "data-lucide": "file-text", class: "ic ic-xl" }));
-  return h("article", { class: "card" },
-    h("div", { class: "cover" }, cover,
-      h("span", { class: "type-badge", text: r.release_type === "track" ? "LYRIC LICENSE" : r.release_type === "ep" ? "LYRIC PACK" : "HOOK / PROJECT" }),
-      h("button", { type: "button", class: "play-fab", "data-action": "preview", "data-id": String(r.id), "aria-label": "Preview " + r.title }, "▶")),
-    h("div", { class: "card-body" },
-      h("div", { class: "small accent-text", text: r.genre || "Original Lyrics" }),
-      h("h3", { class: "card-title", text: r.title, title: r.title }),
-      h("p", { class: "muted small truncate", text: "By " + (r.artist_name || "Synts") }),
-      h("div", { class: "row between mt" },
-        h("strong", { class: "price", text: formatMoney(r.price_inr) }),
-        h("button", { type: "button", class: "btn btn-soft btn-sm", "data-action": "buy", "data-id": String(r.id) }, "LICENSE"))));
-}
+
 function renderReleases() {
   const grid = $("release-grid");
   if (!grid) return;
-  const list = state.releases.filter(r =>
-    (state.filter === "all" || r.release_type === state.filter) &&
-    `${r.title} ${r.artist_name} ${r.genre}`.toLowerCase().includes(state.search));
+
+  const list = state.releases.filter(r => {
+    const matchesFilter = state.filter === "all" || r.release_type === state.filter;
+    const haystack = `${r.title} ${r.artist_name} ${r.genre} ${r.description || ""}`.toLowerCase();
+    const matchesSearch = !state.search || haystack.includes(state.search);
+    return matchesFilter && matchesSearch;
+  });
+
   grid.replaceChildren(...(list.length ? list.map(releaseCard) : [h("p", { class: "empty", text: "No matching lyric projects found." })]));
   icons();
 }
