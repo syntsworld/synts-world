@@ -332,6 +332,13 @@
     cleanPublicLayout();
     renderHeroByRole();
   });
+  function matchesLyricSearch(item, query) {
+  const q = String(query || "").trim().toLowerCase();
+  if (!q) return true;
+  const title = String(item?.title || item?.name || "").toLowerCase();
+  const body = String(item?.bodyText || item?.text || item?.lyrics_text || item?.snippet || "").toLowerCase();
+  return title.includes(q) || body.includes(q);
+}
 
   function boot() {
     cleanPublicLayout();
