@@ -1112,7 +1112,44 @@ async function loadReleases() {
     renderReleases();
   } catch {}
 }
+function releaseCard(r) {
+  const cover = h(
+    "div",
+    { class: "cover" },
+    h("div", { class: "cover-fallback album-gradient-1", text: r.title || "SYNTS" }),
+    h("span", { class: "type-badge", text: r.genre || r.release_type || "Lyric License" }),
+    h("button", {
+      type: "button",
+      class: "play-fab",
+      "data-action": "preview",
+      "data-id": r.id,
+      "aria-label": "Preview " + (r.title || "project")
+    }, "▶")
+  );
 
+  const body = h(
+    "div",
+    { class: "card-body" },
+    h("div", { class: "tiny mono accent-text", text: r.artist_name || "Synts" }),
+    h("h3", { class: "card-title", text: r.title || "Untitled Lyric" }),
+    r.description
+      ? h("p", { class: "muted small mt-s", text: String(r.description).slice(0, 110) })
+      : null,
+    h(
+      "div",
+      { class: "row between mt", style: "padding-top:10px;border-top:1px solid var(--line)" },
+      h("strong", { class: "price mono", text: formatMoney(r.price_inr || 499) }),
+      h("button", {
+        type: "button",
+        class: "btn btn-primary btn-sm",
+        "data-action": "buy",
+        "data-id": r.id
+      }, "LICENSE NOW ↗")
+    )
+  );
+
+  return h("article", { class: "card" }, cover, body);
+}
 function renderReleases() {
   const grid = $("release-grid");
   if (!grid) return;
