@@ -1,198 +1,150 @@
 (() => {
   "use strict";
 
-  let currentAudio = null;
-  let isSpeaking = false;
+  const synth = "speechSynthesis" in window ? window.speechSynthesis : null;
+  let cachedVoices = [];
 
-  const LANG_NAMES = {
-    en: "English", hi: "Hindi", kn: "Kannada", ta: "Tamil", te: "Telugu",
-    mr: "Marathi", pa: "Punjabi", ur: "Urdu", bn: "Bengali", gu: "Gujarati",
-    ml: "Malayalam", ar: "Arabic", fa: "Persian", es: "Spanish", fr: "French",
-    de: "German", pt: "Portuguese", it: "Italian", tr: "Turkish", ru: "Russian",
-    ja: "Japanese", ko: "Korean", "zh-CN": "Chinese"
-  };
+  const ROMAN_HINDI_URDU_WORDS = new Set([
+    "dil", "pyaar", "pyar", "ishq", "yaar", "kya", "hai", "hain",
+    "nahi", "nahin", "nhi", "mein", "main", "tum", "tu", "hum",
+    "tera", "mera", "waqt", "raat", "subah", "zindagi", "khuda",
+    "duniya", "sach", "jhoot", "bas", "ab", "phir", "ka", "ki",
+    "ke", "se", "ko", "aur", "par", "pe", "bhi", "jo", "woh", "wo"
+  ]);
 
-  function showToast(msg, isErr = false) {
-    const t = document.getElementById("toast");
-    if (!t) return;
-    t.textContent = msg;
-    t.classList.toggle("error", isErr);
-    t.classList.remove("hidden");
-    setTimeout(() => t.classList.add("hidden"), 4000);
+  function loadVoices() {
+    if (!synth) return [];
+    const list = synth.getVoices();
+    if (Array.isArray(list) && list.length > 0) {
+      cachedVoices = list;
+    }
+    return cachedVoices;
   }
 
-  function stopAllVoice() {
-    isSpeaking = false;
-    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio.src = "";
-      currentAudio = null;
-    }
-    const oldFrame = document.getElementById("tts-hidden-frame");
-    if (oldFrame) oldFrame.remove();
+  function detectLyricMode(text, explicitLang = "") {
+    const clean = String(text || "").trim();
+    const tag = String(explicitLang || "").toLowerCase();
 
-    const playBtn = document.getElementById("play-btn");
-    if (playBtn) playBtn.textContent = "▶";
-    const stateEl = document.getElementById("player-state");
-    if (stateEl) stateEl.textContent = "VOICE READY";
+    if (tag.startsWith("ur")) return "urdu";
+    if (tag.startsWith("hi-roman") || tag.startsWith("ur-roman") || tag === "hinglish") {
+      return "roman-indic";
+    }
+    if (tag.startsWith("hi")) return "hindi";
+    if (tag.startsWith("en")) return "english";
+
+    // 1. Script checks first
+    if (/[\u0900-\u097F]/.test(clean)) return "hindi";
+    if (/[\u0600-\u06FF]/.test(clean)) return "urdu";
+
+    // 2. Romanized Hindi / Urdu word & phonetic check
+    const words = clean
+      .toLowerCase()
+      .replace(/[^a-z\s']/g, " ")
+      .split(/\s+/)
+      .filter(Boolean);
+
+    let hits = 0;
+    for (const w of words) {
+      if (ROMAN_HINDI_URDU_WORDS.has(w)) hits += 1;
+    }
+
+    const phoneticMarkers =
+      /\b(kh|gh|bh|dh|th|chh)\w*|\w*(aa|ee|oo)\w*/i.test(clean);
+
+    if (hits >= 2 || (hits >= 1 && phoneticMarkers)) {
+      return "roman-indic";
+    }
+
+    return "english";
   }
 
-  function playMultiLangVoice(rawText, langCode) {
-    stopAllVoice();
+  function scoreVoice(voice, preferredLangs) {
+    const lang = String(voice.lang || "").toLowerCase();
+    const name = String(voice.name || "").toLowerCase();
+    let score = 0;
 
-    const cleanText = (rawText || "").replace(/\[[^\]]*\]/g, "").trim();
-    if (!cleanText) {
-      showToast("Please translate or enter some lyrics first to listen!", true);
-      return;
-    }
-
-    const lang = (langCode && langCode !== "auto") ? langCode : "en";
-    const langLabel = LANG_NAMES[lang] || lang;
-
-    isSpeaking = true;
-    const playBtn = document.getElementById("play-btn");
-    if (playBtn) playBtn.textContent = "❚❚";
-    const titleEl = document.getElementById("player-title");
-    if (titleEl) titleEl.textContent = "Speaking (" + langLabel + ")";
-    const stateEl = document.getElementById("player-state");
-    if (stateEl) stateEl.textContent = "🔊 PLAYING: " + langLabel.toUpperCase();
-
-    showToast("🔊 Playing voice in " + langLabel + "...");
-
-    // Split text into safe 150-character phrases
-    const chunks = cleanText.match(/.{1,150}(\s|$)|.{1,150}/g) || [cleanText];
-    let idx = 0;
-
-    // Check if the user's OS/browser actually has a native voice for this exact language
-    const voices = ("speechSynthesis" in window) ? window.speechSynthesis.getVoices() : [];
-    const exactNativeVoice = voices.find(v => {
-      const vLang = v.lang.toLowerCase().replace("_", "-");
-      const target = lang.toLowerCase();
-      return vLang === target || vLang.startsWith(target + "-");
+    preferredLangs.forEach((target, idx) => {
+      const t = target.toLowerCase();
+      if (lang === t) score += (preferredLangs.length - idx) * 30;
+      else if (lang.startsWith(t.split("-")[0])) {
+        score += (preferredLangs.length - idx) * 15;
+      }
     });
 
-    // Strategy 1: If OS has a real native voice for this exact language (e.g. en, hi), use it
-    if (exactNativeVoice && "speechSynthesis" in window) {
-      const u = new SpeechSynthesisUtterance(cleanText);
-      u.voice = exactNativeVoice;
-      u.lang = exactNativeVoice.lang;
-      u.rate = 0.95;
-      u.onend = () => stopAllVoice();
-      u.onerror = () => streamCloudChunks();
-      window.speechSynthesis.resume();
-      window.speechSynthesis.speak(u);
-      return;
-    }
+    // Favor smoother / non-legacy voices over basic local defaults
+    if (!voice.localService) score += 20;
+    if (/natural|neural|online|google|india|indian/i.test(name)) score += 12;
+    if (/david|zira|espeak|festival|legacy/i.test(name)) score -= 15;
 
-    // Strategy 2: Stream Cloud TTS Audio for all other languages (Kannada, Tamil, Telugu, Urdu, Punjabi, etc.)
-    function streamCloudChunks() {
-      if (!isSpeaking || idx >= chunks.length) {
-        stopAllVoice();
-        return;
-      }
-      const chunk = chunks[idx++].trim();
-      if (!chunk) return streamCloudChunks();
-
-      const ttsUrls = [
-        `https://translate.googleapis.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${encodeURIComponent(lang)}&q=${encodeURIComponent(chunk)}`,
-        `https://translate.googleapis.com/translate_tts?ie=UTF-8&client=gtx&tl=${encodeURIComponent(lang)}&q=${encodeURIComponent(chunk)}`,
-        `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(chunk)}&le=${encodeURIComponent(lang)}`
-      ];
-
-      let urlIndex = 0;
-
-      function tryNextUrl() {
-        if (!isSpeaking) return;
-        if (urlIndex >= ttsUrls.length) {
-          // Strategy 3: Sandboxed iframe audio player (bypasses strict Referer blocks)
-          playViaIframe(ttsUrls[0], chunk.length);
-          return;
-        }
-
-        const audio = new Audio();
-        currentAudio = audio;
-        const volEl = document.getElementById("volume");
-        audio.volume = volEl ? Number(volEl.value) : 0.9;
-        audio.src = ttsUrls[urlIndex++];
-
-        audio.onended = () => streamCloudChunks();
-        audio.onerror = () => tryNextUrl();
-
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(() => tryNextUrl());
-        }
-      }
-
-      tryNextUrl();
-    }
-
-    function playViaIframe(url, charCount) {
-      let frame = document.getElementById("tts-hidden-frame");
-      if (frame) frame.remove();
-      frame = document.createElement("iframe");
-      frame.id = "tts-hidden-frame";
-      frame.style.display = "none";
-      frame.referrerPolicy = "no-referrer";
-      frame.src = url;
-      document.body.appendChild(frame);
-
-      const estDurationMs = Math.max(2500, charCount * 95);
-      setTimeout(() => {
-        if (isSpeaking) streamCloudChunks();
-      }, estDurationMs);
-    }
-
-    streamCloudChunks();
+    return score;
   }
 
-  // Intercept clicks on 🔊 LISTEN, 🔊 READ LYRICS, and ⏹ STOP in capture phase so voice.js always handles them
-  document.addEventListener("click", (e) => {
-    const speakBtn = e.target.closest('[data-action="tr-speak"]');
-    if (speakBtn) {
-      e.preventDefault();
-      e.stopImmediatePropagation();
+  function pickVoiceForMode(mode) {
+    const voices = loadVoices();
+    if (!voices.length) return null;
 
-      const outBox = document.getElementById("tr-output");
-      const inBox = document.getElementById("tr-input");
-      const toSelect = document.getElementById("tr-to");
-      const fromSelect = document.getElementById("tr-from");
+    const chains = {
+      hindi: ["hi-IN", "hi", "en-IN", "en"],
+      urdu: ["ur-PK", "ur-IN", "ur", "hi-IN", "hi", "en-IN", "en"],
+      "roman-indic": ["en-IN", "hi-IN", "hi", "en-US", "en-GB", "en"],
+      english: ["en-IN", "en-GB", "en-US", "en"]
+    };
 
-      let text = outBox ? outBox.innerText.trim() : "";
-      let lang = toSelect ? toSelect.value : "hi";
+    const preferred = chains[mode] || chains.english;
+    const ranked = [...voices].sort(
+      (a, b) => scoreVoice(b, preferred) - scoreVoice(a, preferred)
+    );
 
-      if (!text || text === "Translation will appear here." || text === "Translating...") {
-        text = inBox ? inBox.value.trim() : "";
-        if (fromSelect && fromSelect.value !== "auto") lang = fromSelect.value;
-      }
-
-      playMultiLangVoice(text, lang);
-      return;
-    }
-
-    const noteSpeakBtn = e.target.closest('[data-action="speak-notepad"]');
-    if (noteSpeakBtn) {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      const noteText = document.getElementById("lyrics-text")?.value || "";
-      const fromSelect = document.getElementById("tr-from");
-      const lang = (fromSelect && fromSelect.value !== "auto") ? fromSelect.value : "en";
-      playMultiLangVoice(noteText, lang);
-      return;
-    }
-
-    const stopBtn = e.target.closest('[data-action="tr-stop"]');
-    if (stopBtn) {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      stopAllVoice();
-      showToast("Voice playback stopped.");
-    }
-  }, true);
-
-  if ("speechSynthesis" in window) {
-    window.speechSynthesis.getVoices();
-    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    return ranked[0] || voices[0];
   }
+
+  function speakText(text, options = {}) {
+    if (!synth || !String(text || "").trim()) return;
+
+    synth.cancel();
+
+    const mode = detectLyricMode(text, options.lang);
+    const chosenVoice = pickVoiceForMode(mode);
+
+    const utterance = new SpeechSynthesisUtterance(String(text).trim());
+    if (chosenVoice) {
+      utterance.voice = chosenVoice;
+      utterance.lang = chosenVoice.lang;
+    }
+
+    // Keep rate and pitch in a natural range to avoid robotic clipping
+    utterance.rate =
+      typeof options.rate === "number"
+        ? Math.min(Math.max(options.rate, 0.75), 1.2)
+        : mode === "roman-indic"
+        ? 0.94
+        : 0.97;
+
+    utterance.pitch =
+      typeof options.pitch === "number"
+        ? Math.min(Math.max(options.pitch, 0.8), 1.2)
+        : 1.0;
+
+    if (typeof options.onEnd === "function") {
+      utterance.onend = options.onEnd;
+    }
+
+    synth.speak(utterance);
+  }
+
+  function stopSpeaking() {
+    if (synth) synth.cancel();
+  }
+
+  loadVoices();
+  if (synth && "onvoiceschanged" in synth) {
+    synth.onvoiceschanged = loadVoices;
+  }
+
+  window.SyntsVoice = {
+    speak: speakText,
+    stop: stopSpeaking,
+    detectMode: detectLyricMode,
+    getVoices: loadVoices
+  };
 })();
