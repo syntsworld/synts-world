@@ -1,150 +1,83 @@
 (() => {
   "use strict";
 
-  const synth = "speechSynthesis" in window ? window.speechSynthesis : null;
-  let cachedVoices = [];
-
-  const ROMAN_HINDI_URDU_WORDS = new Set([
-    "dil", "pyaar", "pyar", "ishq", "yaar", "kya", "hai", "hain",
-    "nahi", "nahin", "nhi", "mein", "main", "tum", "tu", "hum",
-    "tera", "mera", "waqt", "raat", "subah", "zindagi", "khuda",
-    "duniya", "sach", "jhoot", "bas", "ab", "phir", "ka", "ki",
-    "ke", "se", "ko", "aur", "par", "pe", "bhi", "jo", "woh", "wo"
-  ]);
-
-  function loadVoices() {
-    if (!synth) return [];
-    const list = synth.getVoices();
-    if (Array.isArray(list) && list.length > 0) {
-      cachedVoices = list;
-    }
-    return cachedVoices;
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
   }
 
-  function detectLyricMode(text, explicitLang = "") {
-    const clean = String(text || "").trim();
-    const tag = String(explicitLang || "").toLowerCase();
-
-    if (tag.startsWith("ur")) return "urdu";
-    if (tag.startsWith("hi-roman") || tag.startsWith("ur-roman") || tag === "hinglish") {
-      return "roman-indic";
-    }
-    if (tag.startsWith("hi")) return "hindi";
-    if (tag.startsWith("en")) return "english";
-
-    // 1. Script checks first
-    if (/[\u0900-\u097F]/.test(clean)) return "hindi";
-    if (/[\u0600-\u06FF]/.test(clean)) return "urdu";
-
-    // 2. Romanized Hindi / Urdu word & phonetic check
-    const words = clean
+  function sanitizeFilename(name, fallback = "synts-lyrics") {
+    const clean = String(name || fallback)
+      .trim()
       .toLowerCase()
-      .replace(/[^a-z\s']/g, " ")
-      .split(/\s+/)
-      .filter(Boolean);
-
-    let hits = 0;
-    for (const w of words) {
-      if (ROMAN_HINDI_URDU_WORDS.has(w)) hits += 1;
-    }
-
-    const phoneticMarkers =
-      /\b(kh|gh|bh|dh|th|chh)\w*|\w*(aa|ee|oo)\w*/i.test(clean);
-
-    if (hits >= 2 || (hits >= 1 && phoneticMarkers)) {
-      return "roman-indic";
-    }
-
-    return "english";
+      .replace(/[^a-z0-9-_]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    return clean || fallback;
   }
 
-  function scoreVoice(voice, preferredLangs) {
-    const lang = String(voice.lang || "").toLowerCase();
-    const name = String(voice.name || "").toLowerCase();
-    let score = 0;
+  function formatForReading(title, lyrics, meta = {}) {
+    const headerLines = [];
+    if (title) headerLines.push(String(title).trim());
+    if (meta.artist) headerLines.push(`Artist: ${String(meta.artist).trim()}`);
+    if (meta.language) headerLines.push(`Language: ${String(meta.language).trim()}`);
 
-    preferredLangs.forEach((target, idx) => {
-      const t = target.toLowerCase();
-      if (lang === t) score += (preferredLangs.length - idx) * 30;
-      else if (lang.startsWith(t.split("-")[0])) {
-        score += (preferredLangs.length - idx) * 15;
-      }
-    });
+    const header = headerLines.length
+      ? `${headerLines.join(" | ")}\n${"=".repeat(40)}\n\n`
+      : "";
 
-    // Favor smoother / non-legacy voices over basic local defaults
-    if (!voice.localService) score += 20;
-    if (/natural|neural|online|google|india|indian/i.test(name)) score += 12;
-    if (/david|zira|espeak|festival|legacy/i.test(name)) score -= 15;
+    const body = String(lyrics || "")
+      .replace(/\r\n/g, "\n")
+      .trim();
 
-    return score;
+    return `${header}${body}\n`;
   }
 
-  function pickVoiceForMode(mode) {
-    const voices = loadVoices();
-    if (!voices.length) return null;
+  function downloadTextFile(filename, content, mimeType = "text/plain;charset=utf-8") {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
 
-    const chains = {
-      hindi: ["hi-IN", "hi", "en-IN", "en"],
-      urdu: ["ur-PK", "ur-IN", "ur", "hi-IN", "hi", "en-IN", "en"],
-      "roman-indic": ["en-IN", "hi-IN", "hi", "en-US", "en-GB", "en"],
-      english: ["en-IN", "en-GB", "en-US", "en"]
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function downloadLyricFile(title, lyrics, meta = {}, ext = "txt") {
+    const safeExt = ext === "md" ? "md" : "txt";
+    const base = sanitizeFilename(title, "synts-lyrics");
+    const formatted =
+      safeExt === "md"
+        ? `# ${String(title || "Synts Lyrics").trim()}\n\n${String(lyrics || "").trim()}\n`
+        : formatForReading(title, lyrics, meta);
+
+    downloadTextFile(`${base}.${safeExt}`, formatted);
+  }
+
+  function downloadProjectSnapshot(projectData = {}) {
+    const title = projectData.title || "synts-project";
+    const base = sanitizeFilename(title, "synts-project");
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      title: projectData.title || "Untitled Project",
+      language: projectData.language || "",
+      lyrics: projectData.lyrics || "",
+      notes: projectData.notes || ""
     };
 
-    const preferred = chains[mode] || chains.english;
-    const ranked = [...voices].sort(
-      (a, b) => scoreVoice(b, preferred) - scoreVoice(a, preferred)
+    downloadTextFile(
+      `${base}-project.json`,
+      JSON.stringify(payload, null, 2),
+      "application/json;charset=utf-8"
     );
-
-    return ranked[0] || voices[0];
   }
 
-  function speakText(text, options = {}) {
-    if (!synth || !String(text || "").trim()) return;
-
-    synth.cancel();
-
-    const mode = detectLyricMode(text, options.lang);
-    const chosenVoice = pickVoiceForMode(mode);
-
-    const utterance = new SpeechSynthesisUtterance(String(text).trim());
-    if (chosenVoice) {
-      utterance.voice = chosenVoice;
-      utterance.lang = chosenVoice.lang;
-    }
-
-    // Keep rate and pitch in a natural range to avoid robotic clipping
-    utterance.rate =
-      typeof options.rate === "number"
-        ? Math.min(Math.max(options.rate, 0.75), 1.2)
-        : mode === "roman-indic"
-        ? 0.94
-        : 0.97;
-
-    utterance.pitch =
-      typeof options.pitch === "number"
-        ? Math.min(Math.max(options.pitch, 0.8), 1.2)
-        : 1.0;
-
-    if (typeof options.onEnd === "function") {
-      utterance.onend = options.onEnd;
-    }
-
-    synth.speak(utterance);
-  }
-
-  function stopSpeaking() {
-    if (synth) synth.cancel();
-  }
-
-  loadVoices();
-  if (synth && "onvoiceschanged" in synth) {
-    synth.onvoiceschanged = loadVoices;
-  }
-
-  window.SyntsVoice = {
-    speak: speakText,
-    stop: stopSpeaking,
-    detectMode: detectLyricMode,
-    getVoices: loadVoices
+  window.SyntsReader = {
+    formatForReading,
+    downloadTxt: (title, lyrics, meta) => downloadLyricFile(title, lyrics, meta, "txt"),
+    downloadMd: (title, lyrics, meta) => downloadLyricFile(title, lyrics, meta, "md"),
+    downloadProject: downloadProjectSnapshot
   };
 })();
